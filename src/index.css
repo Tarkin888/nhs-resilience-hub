@@ -48,6 +48,13 @@
     /* Stats Bar */
     --stats-bar: 210 17% 98%; /* #F8F9FA */
 
+    /* Donut unfilled */
+    --donut-unfilled: 195 14% 92%; /* #E8EDEE */
+
+    /* Tooltip dark */
+    --tooltip-dark: 210 24% 24%; /* #2C3E50 */
+    --tooltip-dark-foreground: 0 0% 100%;
+
     --border: 192 20% 88%;
     --input: 192 20% 88%;
     --ring: 209 100% 36%;

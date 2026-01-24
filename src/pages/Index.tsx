@@ -2,6 +2,7 @@ import { format } from 'date-fns';
 import DemoBanner from '@/components/DemoBanner';
 import Header from '@/components/Header';
 import QuickStatsBar from '@/components/QuickStatsBar';
+import FiveCapitalsDisplay from '@/components/FiveCapitalsDisplay';
 import CapitalCard from '@/components/CapitalCard';
 import AlertPanel from '@/components/AlertPanel';
 import ServiceStatus from '@/components/ServiceStatus';
@@ -16,9 +17,12 @@ const Index = () => {
       <QuickStatsBar />
       
       <main className="container mx-auto px-4 py-8">
+        {/* Five Capitals Display - Centrepiece */}
+        <FiveCapitalsDisplay capitals={capitals} />
+
         {/* Page Title */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-foreground">Resilience Dashboard</h1>
+        <div className="mb-8 mt-8">
+          <h2 className="text-xl font-bold text-foreground">Dashboard Overview</h2>
           <p className="text-muted-foreground mt-1">
             Last updated: {format(new Date(), 'dd MMM yyyy, HH:mm')}
           </p>
