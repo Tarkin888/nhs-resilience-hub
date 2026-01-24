@@ -1,12 +1,10 @@
-import { format } from 'date-fns';
 import DemoBanner from '@/components/DemoBanner';
 import Header from '@/components/Header';
 import QuickStatsBar from '@/components/QuickStatsBar';
 import FiveCapitalsDisplay from '@/components/FiveCapitalsDisplay';
 import LiveRiskAlerts from '@/components/LiveRiskAlerts';
+import EssentialServicesPanel from '@/components/EssentialServicesPanel';
 import CapitalCard from '@/components/CapitalCard';
-import AlertPanel from '@/components/AlertPanel';
-import ServiceStatus from '@/components/ServiceStatus';
 import OverallScore from '@/components/OverallScore';
 import { capitals, alerts, essentialServices } from '@/lib/data';
 
@@ -21,16 +19,16 @@ const Index = () => {
         {/* Five Capitals Display - Centrepiece */}
         <FiveCapitalsDisplay capitals={capitals} />
 
-        {/* Live Risk Alerts and Additional Content */}
+        {/* Live Risk Alerts and Essential Services */}
         <div className="grid lg:grid-cols-2 gap-6 mt-8">
           {/* Left: Live Risk Alerts */}
           <div>
             <LiveRiskAlerts alerts={alerts} />
           </div>
 
-          {/* Right: Placeholder for future content */}
+          {/* Right: Essential Services Status */}
           <div>
-            <OverallScore capitals={capitals} />
+            <EssentialServicesPanel services={essentialServices} />
           </div>
         </div>
 
@@ -44,9 +42,9 @@ const Index = () => {
           </div>
         </section>
 
-        {/* Essential Services */}
+        {/* Overall Resilience Summary */}
         <section className="mt-8">
-          <ServiceStatus services={essentialServices} />
+          <OverallScore capitals={capitals} />
         </section>
       </main>
 
