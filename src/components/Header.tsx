@@ -1,35 +1,44 @@
-import { Shield, Bell, Settings, User } from 'lucide-react';
+import { HelpCircle, PlayCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { format } from 'date-fns';
 
 const Header = () => {
   return (
-    <header className="nhs-header">
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Shield className="h-8 w-8" />
-            <div>
-              <h1 className="text-xl font-semibold">Trust Resilience Platform</h1>
-              <p className="text-sm opacity-90">Example NHS Trust</p>
-            </div>
+    <header className="bg-card border-b shadow-sm">
+      <div className="container mx-auto px-4 py-4 md:py-5">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          {/* Left: Title */}
+          <div>
+            <h1 className="text-xl md:text-2xl font-bold text-primary">
+              NHS Trust Resilience Command Centre
+            </h1>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              St. Mary's NHS Foundation Trust
+            </p>
           </div>
-          
-          <nav className="hidden md:flex items-center gap-6">
-            <a href="#" className="text-sm font-medium hover:underline">Dashboard</a>
-            <a href="#" className="text-sm font-medium hover:underline">Capitals</a>
-            <a href="#" className="text-sm font-medium hover:underline">Services</a>
-            <a href="#" className="text-sm font-medium hover:underline">Reports</a>
-          </nav>
-          
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-primary-foreground/10">
-              <Bell className="h-5 w-5" />
+
+          {/* Right: Actions */}
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="text-xs text-muted-foreground">
+              <span className="hidden sm:inline">Last updated: </span>
+              <span className="font-medium text-foreground">
+                {format(new Date(), 'dd MMM yyyy, HH:mm')}
+              </span>
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 w-9 p-0"
+              aria-label="Methodology"
+            >
+              <HelpCircle className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-primary-foreground/10">
-              <Settings className="h-5 w-5" />
-            </Button>
-            <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-primary-foreground/10">
-              <User className="h-5 w-5" />
+
+            <Button size="sm" className="gap-2">
+              <PlayCircle className="h-4 w-4" />
+              <span className="hidden sm:inline">Demo Walkthrough</span>
+              <span className="sm:hidden">Demo</span>
             </Button>
           </div>
         </div>
