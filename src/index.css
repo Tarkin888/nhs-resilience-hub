@@ -45,6 +45,9 @@
     --demo: 207 89% 94%; /* #E3F2FD */
     --demo-foreground: 209 100% 36%;
 
+    /* Stats Bar */
+    --stats-bar: 210 17% 98%; /* #F8F9FA */
+
     --border: 192 20% 88%;
     --input: 192 20% 88%;
     --ring: 209 100% 36%;

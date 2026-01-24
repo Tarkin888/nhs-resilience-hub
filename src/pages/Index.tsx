@@ -1,6 +1,7 @@
 import { format } from 'date-fns';
 import DemoBanner from '@/components/DemoBanner';
 import Header from '@/components/Header';
+import QuickStatsBar from '@/components/QuickStatsBar';
 import CapitalCard from '@/components/CapitalCard';
 import AlertPanel from '@/components/AlertPanel';
 import ServiceStatus from '@/components/ServiceStatus';
@@ -12,6 +13,7 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <DemoBanner />
       <Header />
+      <QuickStatsBar />
       
       <main className="container mx-auto px-4 py-8">
         {/* Page Title */}
