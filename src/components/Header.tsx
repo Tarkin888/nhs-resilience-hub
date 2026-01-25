@@ -6,12 +6,13 @@ import MethodologyPanel from './MethodologyPanel';
 interface HeaderProps {
   isMethodologyOpen: boolean;
   onMethodologyOpenChange: (open: boolean) => void;
+  onStartTour: () => void;
 }
 
-const Header = ({ isMethodologyOpen, onMethodologyOpenChange }: HeaderProps) => {
+const Header = ({ isMethodologyOpen, onMethodologyOpenChange, onStartTour }: HeaderProps) => {
   return (
     <>
-      <header className="bg-card border-b shadow-sm">
+      <header data-tour="header" className="bg-card border-b shadow-sm">
         <div className="container mx-auto px-4 py-4 md:py-5">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             {/* Left: Title */}
@@ -43,7 +44,7 @@ const Header = ({ isMethodologyOpen, onMethodologyOpenChange }: HeaderProps) => 
                 <HelpCircle className="h-4 w-4" />
               </Button>
 
-              <Button size="sm" className="gap-2">
+              <Button size="sm" className="gap-2" onClick={onStartTour}>
                 <PlayCircle className="h-4 w-4" />
                 <span className="hidden sm:inline">Demo Walkthrough</span>
                 <span className="sm:hidden">Demo</span>

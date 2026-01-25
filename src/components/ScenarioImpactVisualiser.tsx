@@ -295,7 +295,7 @@ export const ScenarioImpactVisualiser = () => {
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Controls Row */}
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center" data-tour="scenario-selector">
           <div className="flex-1 flex items-center gap-2">
             <Select
               value={selectedScenario}

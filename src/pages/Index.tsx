@@ -8,16 +8,24 @@ import EssentialServicesPanel from '@/components/EssentialServicesPanel';
 import { ScenarioImpactVisualiser } from '@/components/ScenarioImpactVisualiser';
 import CapitalCard from '@/components/CapitalCard';
 import OverallScore from '@/components/OverallScore';
+import GuidedTour from '@/components/GuidedTour';
 import { capitals, alerts, essentialServices } from '@/lib/data';
 
 const Index = () => {
   const [isMethodologyOpen, setIsMethodologyOpen] = useState(false);
+  const [isTourOpen, setIsTourOpen] = useState(false);
+
+  const handleStartTour = () => {
+    setIsTourOpen(true);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <DemoBanner onOpenMethodology={() => setIsMethodologyOpen(true)} />
       <Header 
         isMethodologyOpen={isMethodologyOpen} 
-        onMethodologyOpenChange={setIsMethodologyOpen} 
+        onMethodologyOpenChange={setIsMethodologyOpen}
+        onStartTour={handleStartTour}
       />
       <QuickStatsBar />
       
@@ -72,6 +80,9 @@ const Index = () => {
           </div>
         </div>
       </footer>
+
+      {/* Guided Tour */}
+      <GuidedTour isOpen={isTourOpen} onClose={() => setIsTourOpen(false)} />
     </div>
   );
 };
