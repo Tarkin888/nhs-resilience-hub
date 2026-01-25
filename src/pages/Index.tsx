@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import DemoBanner from '@/components/DemoBanner';
 import Header from '@/components/Header';
 import QuickStatsBar from '@/components/QuickStatsBar';
@@ -8,11 +9,16 @@ import { ScenarioImpactVisualiser } from '@/components/ScenarioImpactVisualiser'
 import CapitalCard from '@/components/CapitalCard';
 import OverallScore from '@/components/OverallScore';
 import { capitals, alerts, essentialServices } from '@/lib/data';
+
 const Index = () => {
+  const [isMethodologyOpen, setIsMethodologyOpen] = useState(false);
   return (
     <div className="min-h-screen bg-background">
-      <DemoBanner />
-      <Header />
+      <DemoBanner onOpenMethodology={() => setIsMethodologyOpen(true)} />
+      <Header 
+        isMethodologyOpen={isMethodologyOpen} 
+        onMethodologyOpenChange={setIsMethodologyOpen} 
+      />
       <QuickStatsBar />
       
       <main className="container mx-auto px-4 py-8">

@@ -1,12 +1,14 @@
-import { useState } from 'react';
 import { HelpCircle, PlayCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import MethodologyPanel from './MethodologyPanel';
 
-const Header = () => {
-  const [isMethodologyOpen, setIsMethodologyOpen] = useState(false);
+interface HeaderProps {
+  isMethodologyOpen: boolean;
+  onMethodologyOpenChange: (open: boolean) => void;
+}
 
+const Header = ({ isMethodologyOpen, onMethodologyOpenChange }: HeaderProps) => {
   return (
     <>
       <header className="bg-card border-b shadow-sm">
@@ -36,7 +38,7 @@ const Header = () => {
                 size="sm"
                 className="h-9 w-9 p-0"
                 aria-label="Methodology"
-                onClick={() => setIsMethodologyOpen(true)}
+                onClick={() => onMethodologyOpenChange(true)}
               >
                 <HelpCircle className="h-4 w-4" />
               </Button>
@@ -53,7 +55,7 @@ const Header = () => {
 
       <MethodologyPanel
         isOpen={isMethodologyOpen}
-        onClose={() => setIsMethodologyOpen(false)}
+        onClose={() => onMethodologyOpenChange(false)}
       />
     </>
   );

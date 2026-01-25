@@ -5,7 +5,11 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 
-const DemoBanner = () => {
+interface DemoBannerProps {
+  onOpenMethodology: () => void;
+}
+
+const DemoBanner = ({ onOpenMethodology }: DemoBannerProps) => {
   return (
     <div className="bg-demo text-demo-foreground">
       <div className="container mx-auto px-4 py-3 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-sm">
@@ -33,13 +37,13 @@ const DemoBanner = () => {
         </div>
 
         <div className="flex items-center gap-4 text-xs">
-          <a 
-            href="#methodology" 
+          <button 
+            onClick={onOpenMethodology}
             className="flex items-center gap-1 hover:underline hover:text-primary transition-colors"
           >
             Methodology Guide
             <ExternalLink className="h-3 w-3" />
-          </a>
+          </button>
           <a 
             href="#data-sources" 
             className="flex items-center gap-1 hover:underline hover:text-primary transition-colors"
