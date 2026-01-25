@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { Info, TrendingUp, TrendingDown, Minus, Coins, Building2, Users, Award, Leaf, LucideIcon } from 'lucide-react';
@@ -25,7 +25,7 @@ const iconMap: Record<string, LucideIcon> = {
   Environmental: Leaf,
 };
 
-const CapitalScoreCircle = ({ capital, index, onClick, dataTourId }: CapitalScoreCircleProps) => {
+const CapitalScoreCircle = memo(({ capital, index, onClick, dataTourId }: CapitalScoreCircleProps) => {
   const [animatedScore, setAnimatedScore] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -48,30 +48,30 @@ const CapitalScoreCircle = ({ capital, index, onClick, dataTourId }: CapitalScor
     return () => clearInterval(timer);
   }, [capital.score]);
 
-  const getStatusColor = (score: number) => {
+  const getStatusColor = useCallback((score: number) => {
     if (score >= 80) return '#00A651';
     if (score >= 60) return '#FFB81C';
     return '#DA291C';
-  };
+  }, []);
 
-  const getStatusLabel = (score: number) => {
+  const getStatusLabel = useCallback((score: number) => {
     if (score >= 80) return 'Green';
     if (score >= 60) return 'Amber';
     return 'Red';
-  };
+  }, []);
 
-  const getTrendIcon = () => {
+  const getTrendIcon = useCallback(() => {
     switch (capital.trend) {
       case 'improving':
-        return <TrendingUp className="h-4 w-4 text-success" />;
+        return <TrendingUp className="h-4 w-4 text-success" aria-hidden="true" />;
       case 'declining':
-        return <TrendingDown className="h-4 w-4 text-destructive" />;
+        return <TrendingDown className="h-4 w-4 text-destructive" aria-hidden="true" />;
       default:
-        return <Minus className="h-4 w-4 text-muted-foreground" />;
+        return <Minus className="h-4 w-4 text-muted-foreground" aria-hidden="true" />;
     }
-  };
+  }, [capital.trend]);
 
-  const getTrendArrow = () => {
+  const getTrendArrow = useCallback(() => {
     switch (capital.trend) {
       case 'improving':
         return '↑';
@@ -80,7 +80,7 @@ const CapitalScoreCircle = ({ capital, index, onClick, dataTourId }: CapitalScor
       default:
         return '→';
     }
-  };
+  }, [capital.trend]);
 
   const Icon = iconMap[capital.name] || Coins;
   const statusColor = getStatusColor(capital.score);
@@ -91,9 +91,16 @@ const CapitalScoreCircle = ({ capital, index, onClick, dataTourId }: CapitalScor
     { name: 'remaining', value: 100 - animatedScore },
   ];
 
-  const handleClick = () => {
+  const handleClick = useCallback(() => {
     onClick?.();
-  };
+  }, [onClick]);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onClick?.();
+    }
+  }, [onClick]);
 
   return (
     <motion.div
@@ -105,7 +112,7 @@ const CapitalScoreCircle = ({ capital, index, onClick, dataTourId }: CapitalScor
     >
       <div
         className={cn(
-          'relative cursor-pointer transition-all duration-300',
+          'relative cursor-pointer transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-xl p-2',
           isHovered && 'scale-105'
         )}
         style={{
@@ -114,27 +121,31 @@ const CapitalScoreCircle = ({ capital, index, onClick, dataTourId }: CapitalScor
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         onClick={handleClick}
+        onKeyDown={handleKeyDown}
+        tabIndex={0}
+        role="button"
+        aria-label={`${capital.name} capital score: ${capital.score} out of 100, status ${getStatusLabel(capital.score)}, trend ${capital.trend}`}
       >
         {/* Icon above circle */}
         <div className="flex justify-center mb-2">
           <div
-            className="w-10 h-10 rounded-full flex items-center justify-center"
+            className="w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center"
             style={{ backgroundColor: `${statusColor}15` }}
           >
-            <Icon className="h-5 w-5" style={{ color: statusColor }} />
+            <Icon className="h-4 w-4 md:h-5 md:w-5" style={{ color: statusColor }} aria-hidden="true" />
           </div>
         </div>
 
         {/* Donut Chart */}
-        <div className="relative w-[120px] h-[120px]">
+        <div className="relative w-[100px] h-[100px] md:w-[120px] md:h-[120px]">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
                 data={pieData}
                 cx="50%"
                 cy="50%"
-                innerRadius={42}
-                outerRadius={55}
+                innerRadius="70%"
+                outerRadius="90%"
                 startAngle={90}
                 endAngle={-270}
                 dataKey="value"
@@ -149,10 +160,10 @@ const CapitalScoreCircle = ({ capital, index, onClick, dataTourId }: CapitalScor
           {/* Score in center */}
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <div className="flex items-baseline">
-              <span className="text-4xl font-bold text-foreground">
+              <span className="text-2xl md:text-4xl font-bold text-foreground">
                 {animatedScore}
               </span>
-              <span className="text-xl text-muted-foreground">/100</span>
+              <span className="text-base md:text-xl text-muted-foreground">/100</span>
             </div>
           </div>
 
@@ -162,6 +173,7 @@ const CapitalScoreCircle = ({ capital, index, onClick, dataTourId }: CapitalScor
               initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 1, y: 0 }}
               className="absolute -right-1 top-1/2 -translate-y-1/2"
+              aria-hidden="true"
             >
               <span
                 className={cn(
@@ -180,8 +192,11 @@ const CapitalScoreCircle = ({ capital, index, onClick, dataTourId }: CapitalScor
           <div className="absolute -top-1 -right-1" data-tour="info-icon">
             <Tooltip>
               <TooltipTrigger asChild>
-                <button className="w-5 h-5 rounded-full bg-card border flex items-center justify-center hover:bg-muted transition-colors">
-                  <Info className="h-3 w-3 text-muted-foreground" />
+                <button 
+                  className="w-5 h-5 rounded-full bg-card border flex items-center justify-center hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
+                  aria-label={`More information about ${capital.name} capital`}
+                >
+                  <Info className="h-3 w-3 text-muted-foreground" aria-hidden="true" />
                 </button>
               </TooltipTrigger>
               <TooltipContent
@@ -216,12 +231,14 @@ const CapitalScoreCircle = ({ capital, index, onClick, dataTourId }: CapitalScor
         </div>
 
         {/* Capital name */}
-        <p className="mt-3 text-base font-semibold text-foreground text-center">
+        <p className="mt-3 text-sm md:text-base font-semibold text-foreground text-center">
           {capital.name}
         </p>
       </div>
     </motion.div>
   );
-};
+});
+
+CapitalScoreCircle.displayName = 'CapitalScoreCircle';
 
 export default CapitalScoreCircle;

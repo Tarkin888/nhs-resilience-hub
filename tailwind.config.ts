@@ -2,8 +2,15 @@ import type { Config } from "tailwindcss";
 
 export default {
   darkMode: ["class"],
-  content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
-  prefix: "",
+  content: [
+    "./pages/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./app/**/*.{ts,tsx}",
+    "./src/**/*.{ts,tsx}",
+  ],
+  future: {
+    hoverOnlyWhenSupported: true,
+  },
   theme: {
     container: {
       center: true,
@@ -73,6 +80,10 @@ export default {
           ring: "hsl(var(--sidebar-ring))",
         },
       },
+      boxShadow: {
+        'card': '0 2px 8px rgba(0, 0, 0, 0.1)',
+        'card-hover': '0 8px 24px rgba(0, 0, 0, 0.15)',
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
@@ -106,6 +117,13 @@ export default {
         "fade-in": "fade-in 0.3s ease-out",
         "slide-in": "slide-in 0.3s ease-out",
         pulse: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+      },
+      screens: {
+        'xs': '480px',
+      },
+      fontSize: {
+        'mobile-sm': ['0.8125rem', { lineHeight: '1.25rem' }],
+        'mobile-base': ['0.875rem', { lineHeight: '1.375rem' }],
       },
     },
   },
