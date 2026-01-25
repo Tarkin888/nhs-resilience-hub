@@ -21,7 +21,7 @@ const FiveCapitalsDisplay = ({ capitals }: FiveCapitalsDisplayProps) => {
   };
 
   return (
-    <section className="py-8">
+    <section className="py-8" data-tour="five-capitals">
       <div className="text-center mb-8">
         <h2 className="text-xl font-bold text-foreground">
           Five Capitals Health Score
@@ -39,6 +39,7 @@ const FiveCapitalsDisplay = ({ capitals }: FiveCapitalsDisplayProps) => {
               capital={capital}
               index={index}
               onClick={() => handleCapitalClick(capital)}
+              dataTourId={`capital-${capital.name.toLowerCase()}`}
             />
           ))}
         </div>

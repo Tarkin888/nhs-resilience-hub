@@ -14,6 +14,7 @@ interface CapitalScoreCircleProps {
   capital: Capital;
   index: number;
   onClick?: () => void;
+  dataTourId?: string;
 }
 
 const iconMap: Record<string, LucideIcon> = {
@@ -24,7 +25,7 @@ const iconMap: Record<string, LucideIcon> = {
   Environmental: Leaf,
 };
 
-const CapitalScoreCircle = ({ capital, index, onClick }: CapitalScoreCircleProps) => {
+const CapitalScoreCircle = ({ capital, index, onClick, dataTourId }: CapitalScoreCircleProps) => {
   const [animatedScore, setAnimatedScore] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -100,6 +101,7 @@ const CapitalScoreCircle = ({ capital, index, onClick }: CapitalScoreCircleProps
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.4, delay: index * 0.1 }}
       className="flex flex-col items-center"
+      data-tour={dataTourId}
     >
       <div
         className={cn(
@@ -175,7 +177,7 @@ const CapitalScoreCircle = ({ capital, index, onClick }: CapitalScoreCircleProps
           )}
 
           {/* Info Tooltip */}
-          <div className="absolute -top-1 -right-1">
+          <div className="absolute -top-1 -right-1" data-tour="info-icon">
             <Tooltip>
               <TooltipTrigger asChild>
                 <button className="w-5 h-5 rounded-full bg-card border flex items-center justify-center hover:bg-muted transition-colors">
