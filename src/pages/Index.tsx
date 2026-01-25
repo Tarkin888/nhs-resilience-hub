@@ -4,10 +4,10 @@ import QuickStatsBar from '@/components/QuickStatsBar';
 import FiveCapitalsDisplay from '@/components/FiveCapitalsDisplay';
 import LiveRiskAlerts from '@/components/LiveRiskAlerts';
 import EssentialServicesPanel from '@/components/EssentialServicesPanel';
+import { ScenarioImpactVisualiser } from '@/components/ScenarioImpactVisualiser';
 import CapitalCard from '@/components/CapitalCard';
 import OverallScore from '@/components/OverallScore';
 import { capitals, alerts, essentialServices } from '@/lib/data';
-
 const Index = () => {
   return (
     <div className="min-h-screen bg-background">
@@ -31,6 +31,11 @@ const Index = () => {
             <EssentialServicesPanel services={essentialServices} />
           </div>
         </div>
+
+        {/* Scenario Impact Visualiser - Full Width */}
+        <section className="mt-8">
+          <ScenarioImpactVisualiser />
+        </section>
 
         {/* Capital Cards Section */}
         <section className="mt-8">
