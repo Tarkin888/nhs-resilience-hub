@@ -150,11 +150,15 @@
   }
 
   .capital-card {
-    @apply bg-card rounded-lg border shadow-sm p-6 transition-all duration-200 hover:shadow-md;
+    @apply bg-card rounded-lg border shadow-card p-6 transition-all duration-300;
+  }
+  
+  .capital-card:hover {
+    @apply shadow-card-hover -translate-y-0.5;
   }
 
   .alert-card {
-    @apply bg-card rounded-lg border-l-4 p-4 shadow-sm;
+    @apply bg-card rounded-lg border-l-4 p-4 shadow-card;
   }
 
   .nhs-header {
@@ -163,5 +167,24 @@
 
   .demo-banner {
     @apply bg-demo text-demo-foreground px-4 py-2 text-sm font-medium text-center;
+  }
+
+  /* Polished card styles */
+  .card-polished {
+    @apply bg-card rounded-lg border shadow-card transition-all duration-300;
+  }
+  
+  .card-polished:hover {
+    @apply shadow-card-hover -translate-y-0.5;
+  }
+
+  /* Focus states for accessibility */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
+  }
+
+  /* Container with max-width */
+  .container-dashboard {
+    @apply max-w-[1400px] mx-auto px-4 md:px-8;
   }
 }

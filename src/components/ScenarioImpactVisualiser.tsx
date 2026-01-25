@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback, useMemo, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -250,23 +250,26 @@ const scenarios: Scenario[] = [
   },
 ];
 
-export const ScenarioImpactVisualiser = () => {
+export const ScenarioImpactVisualiser = memo(() => {
   const [selectedScenario, setSelectedScenario] = useState<string>('');
   const [isRunning, setIsRunning] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [visibleCards, setVisibleCards] = useState<number>(0);
 
-  const currentScenario = scenarios.find((s) => s.id === selectedScenario);
+  const currentScenario = useMemo(() => 
+    scenarios.find((s) => s.id === selectedScenario),
+    [selectedScenario]
+  );
 
-  const runScenario = () => {
-    if (!selectedScenario) return;
+  const runScenario = useCallback(() => {
+    if (!selectedScenario || !currentScenario) return;
 
     setIsRunning(true);
     setShowResults(true);
     setVisibleCards(0);
 
     // Animate cards appearing sequentially
-    const totalCards = currentScenario?.impacts.length || 0;
+    const totalCards = currentScenario.impacts.length;
     for (let i = 0; i < totalCards; i++) {
       setTimeout(() => {
         setVisibleCards((prev) => prev + 1);
@@ -276,36 +279,46 @@ export const ScenarioImpactVisualiser = () => {
     setTimeout(() => {
       setIsRunning(false);
     }, totalCards * 500 + 500);
-  };
+  }, [selectedScenario, currentScenario]);
 
-  const resetScenario = () => {
+  const resetScenario = useCallback(() => {
     setShowResults(false);
     setVisibleCards(0);
     setSelectedScenario('');
-  };
+  }, []);
 
-  const totalImpact = currentScenario?.impacts.reduce((sum, i) => sum + i.impact, 0) || 0;
+  const handleScenarioChange = useCallback((value: string) => {
+    setSelectedScenario(value);
+  }, []);
+
+  const totalImpact = useMemo(() => 
+    currentScenario?.impacts.reduce((sum, i) => sum + i.impact, 0) || 0,
+    [currentScenario]
+  );
 
   return (
-    <Card className="bg-white shadow-md rounded-lg">
-      <CardHeader className="pb-4">
-        <CardTitle className="text-xl font-bold text-foreground">
+    <Card className="bg-card shadow-card rounded-lg transition-all duration-300 hover:shadow-card-hover">
+      <CardHeader className="pb-4 px-4 sm:px-6">
+        <CardTitle className="text-lg sm:text-xl font-bold text-foreground">
           Scenario Impact Visualiser
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-4 sm:space-y-6 px-4 sm:px-6">
         {/* Controls Row */}
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center" data-tour="scenario-selector">
-          <div className="flex-1 flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center" data-tour="scenario-selector">
+          <div className="flex-1 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
             <Select
               value={selectedScenario}
-              onValueChange={setSelectedScenario}
+              onValueChange={handleScenarioChange}
               disabled={isRunning}
             >
-              <SelectTrigger className="w-full sm:w-[350px] bg-white">
+              <SelectTrigger 
+                className="w-full sm:w-[350px] bg-card focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                aria-label="Select a scenario"
+              >
                 <SelectValue placeholder="Select a scenario..." />
               </SelectTrigger>
-              <SelectContent className="bg-white z-50">
+              <SelectContent className="bg-card z-50">
                 {scenarios.map((scenario) => (
                   <SelectItem key={scenario.id} value={scenario.id}>
                     {scenario.name}
@@ -317,8 +330,11 @@ export const ScenarioImpactVisualiser = () => {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <button className="p-2 text-muted-foreground hover:text-foreground transition-colors">
-                    <Info className="h-5 w-5" />
+                  <button 
+                    className="hidden sm:flex p-2 text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
+                    aria-label="More information about scenarios"
+                  >
+                    <Info className="h-5 w-5" aria-hidden="true" />
                   </button>
                 </TooltipTrigger>
                 <TooltipContent className="max-w-xs bg-foreground text-background p-3">
@@ -335,15 +351,16 @@ export const ScenarioImpactVisualiser = () => {
           <Button
             onClick={runScenario}
             disabled={!selectedScenario || isRunning}
-            className="bg-[hsl(var(--nhs-blue))] hover:bg-[hsl(var(--nhs-dark-blue))] text-white gap-2"
+            className="bg-primary hover:bg-secondary text-primary-foreground gap-2 focus:ring-2 focus:ring-primary focus:ring-offset-2"
+            aria-label="Run selected scenario"
           >
-            <Play className="h-4 w-4" />
+            <Play className="h-4 w-4" aria-hidden="true" />
             Run Scenario
           </Button>
         </div>
 
         {/* Impact Display Area */}
-        <div className="min-h-[300px] border border-border rounded-lg p-6 bg-muted/30">
+        <div className="min-h-[250px] sm:min-h-[300px] border border-border rounded-lg p-4 sm:p-6 bg-muted/30">
           {!showResults ? (
             <div className="h-full flex items-center justify-center text-center">
               <p className="text-muted-foreground text-lg max-w-md">
@@ -466,4 +483,6 @@ export const ScenarioImpactVisualiser = () => {
       </CardContent>
     </Card>
   );
-};
+});
+
+ScenarioImpactVisualiser.displayName = 'ScenarioImpactVisualiser';
