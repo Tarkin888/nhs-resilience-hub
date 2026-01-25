@@ -1,11 +1,25 @@
+import { useState } from 'react';
 import { Capital } from '@/types';
 import CapitalScoreCircle from './CapitalScoreCircle';
+import CapitalDetailPanel from './CapitalDetailPanel';
 
 interface FiveCapitalsDisplayProps {
   capitals: Capital[];
 }
 
 const FiveCapitalsDisplay = ({ capitals }: FiveCapitalsDisplayProps) => {
+  const [selectedCapital, setSelectedCapital] = useState<Capital | null>(null);
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
+
+  const handleCapitalClick = (capital: Capital) => {
+    setSelectedCapital(capital);
+    setIsPanelOpen(true);
+  };
+
+  const handleClosePanel = () => {
+    setIsPanelOpen(false);
+  };
+
   return (
     <section className="py-8">
       <div className="text-center mb-8">
@@ -24,10 +38,17 @@ const FiveCapitalsDisplay = ({ capitals }: FiveCapitalsDisplayProps) => {
               key={capital.id}
               capital={capital}
               index={index}
+              onClick={() => handleCapitalClick(capital)}
             />
           ))}
         </div>
       </div>
+
+      <CapitalDetailPanel
+        capital={selectedCapital}
+        isOpen={isPanelOpen}
+        onClose={handleClosePanel}
+      />
     </section>
   );
 };
