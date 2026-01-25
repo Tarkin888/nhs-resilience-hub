@@ -13,6 +13,7 @@ import {
 interface CapitalScoreCircleProps {
   capital: Capital;
   index: number;
+  onClick?: () => void;
 }
 
 const iconMap: Record<string, LucideIcon> = {
@@ -23,7 +24,7 @@ const iconMap: Record<string, LucideIcon> = {
   Environmental: Leaf,
 };
 
-const CapitalScoreCircle = ({ capital, index }: CapitalScoreCircleProps) => {
+const CapitalScoreCircle = ({ capital, index, onClick }: CapitalScoreCircleProps) => {
   const [animatedScore, setAnimatedScore] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -90,7 +91,7 @@ const CapitalScoreCircle = ({ capital, index }: CapitalScoreCircleProps) => {
   ];
 
   const handleClick = () => {
-    console.log(`Capital clicked: ${capital.name}`, capital);
+    onClick?.();
   };
 
   return (
