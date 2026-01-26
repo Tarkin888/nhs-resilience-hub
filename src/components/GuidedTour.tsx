@@ -78,6 +78,15 @@ export const GuidedTour = ({ isOpen, onClose }: GuidedTourProps) => {
 
   const step = tourSteps[currentStep];
 
+  // Cleanup function to reset all tour state
+  const handleTourExit = useCallback(() => {
+    setCurrentStep(0);
+    setTargetRect(null);
+    setShowSkipConfirm(false);
+    document.body.style.overflow = 'auto'; // Re-enable scroll
+    onClose();
+  }, [onClose]);
+
   const updateTargetPosition = useCallback(() => {
     if (!step) return;
 
@@ -87,6 +96,19 @@ export const GuidedTour = ({ isOpen, onClose }: GuidedTourProps) => {
       setTargetRect(rect);
     }
   }, [step]);
+
+  // Lock scroll when tour is active
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -113,8 +135,7 @@ export const GuidedTour = ({ isOpen, onClose }: GuidedTourProps) => {
 
   const completeTour = () => {
     localStorage.setItem(TOUR_COMPLETED_KEY, 'true');
-    setCurrentStep(0);
-    onClose();
+    handleTourExit();
   };
 
   const handleSkip = () => {
@@ -122,10 +143,8 @@ export const GuidedTour = ({ isOpen, onClose }: GuidedTourProps) => {
   };
 
   const confirmSkip = () => {
-    setShowSkipConfirm(false);
     localStorage.setItem(TOUR_COMPLETED_KEY, 'true');
-    setCurrentStep(0);
-    onClose();
+    handleTourExit();
   };
 
   const getPopupPosition = () => {
