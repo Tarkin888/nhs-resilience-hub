@@ -1,8 +1,9 @@
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useState } from 'react';
 import { motion } from 'framer-motion';
 import { TrendingUp, TrendingDown, Minus, ChevronRight } from 'lucide-react';
 import { Capital } from '@/types';
 import { cn } from '@/lib/utils';
+import CapitalDetailPanel from './CapitalDetailPanel';
 
 interface CapitalCardProps {
   capital: Capital;
@@ -10,6 +11,8 @@ interface CapitalCardProps {
 }
 
 const CapitalCard = memo(({ capital, index }: CapitalCardProps) => {
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
+
   const getStatusColor = useCallback((status: string) => {
     switch (status) {
       case 'green':
@@ -53,65 +56,82 @@ const CapitalCard = memo(({ capital, index }: CapitalCardProps) => {
     return 'text-destructive';
   }, []);
 
+  const handleViewDetails = useCallback(() => {
+    setIsPanelOpen(true);
+  }, []);
+
+  const handleClosePanel = useCallback(() => {
+    setIsPanelOpen(false);
+  }, []);
+
   return (
-    <motion.article
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: index * 0.1 }}
-      className="capital-card group cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-      tabIndex={0}
-      role="button"
-      aria-label={`${capital.name} capital - Score: ${capital.score}/100, Status: ${capital.status}`}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          console.log('View capital:', capital.id);
-        }
-      }}
-    >
-      <div className="flex items-start justify-between mb-3 sm:mb-4">
-        <div className="flex items-center gap-2 sm:gap-3">
-          <div className={cn('w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full', getStatusColor(capital.status))} aria-hidden="true" />
-          <h3 className="font-semibold text-foreground text-sm sm:text-base">{capital.name}</h3>
+    <>
+      <motion.article
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: index * 0.1 }}
+        className="capital-card group cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+        tabIndex={0}
+        role="button"
+        aria-label={`${capital.name} capital - Score: ${capital.score}/100, Status: ${capital.status}`}
+        onClick={handleViewDetails}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleViewDetails();
+          }
+        }}
+      >
+        <div className="flex items-start justify-between mb-3 sm:mb-4">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className={cn('w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full', getStatusColor(capital.status))} aria-hidden="true" />
+            <h3 className="font-semibold text-foreground text-sm sm:text-base">{capital.name}</h3>
+          </div>
+          <span className={cn('status-badge text-[10px] sm:text-xs', getStatusBadgeClass(capital.status))}>
+            {capital.status.charAt(0).toUpperCase() + capital.status.slice(1)}
+          </span>
         </div>
-        <span className={cn('status-badge text-[10px] sm:text-xs', getStatusBadgeClass(capital.status))}>
-          {capital.status.charAt(0).toUpperCase() + capital.status.slice(1)}
-        </span>
-      </div>
 
-      <div className="flex items-end justify-between mb-3 sm:mb-4">
-        <div>
-          <p className="text-xs sm:text-sm text-muted-foreground mb-1">Resilience Score</p>
-          <p className={cn('text-2xl sm:text-3xl font-bold', getScoreColor(capital.score))}>
-            {capital.score}
-            <span className="text-base sm:text-lg text-muted-foreground">/100</span>
-          </p>
+        <div className="flex items-end justify-between mb-3 sm:mb-4">
+          <div>
+            <p className="text-xs sm:text-sm text-muted-foreground mb-1">Resilience Score</p>
+            <p className={cn('text-2xl sm:text-3xl font-bold', getScoreColor(capital.score))}>
+              {capital.score}
+              <span className="text-base sm:text-lg text-muted-foreground">/100</span>
+            </p>
+          </div>
+          <div className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground">
+            {getTrendIcon(capital.trend)}
+            <span className="capitalize">{capital.trend}</span>
+          </div>
         </div>
-        <div className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground">
-          {getTrendIcon(capital.trend)}
-          <span className="capitalize">{capital.trend}</span>
-        </div>
-      </div>
 
-      <div className="border-t pt-3 sm:pt-4">
-        <p className="text-xs sm:text-sm text-muted-foreground mb-2">Key Risk Indicators</p>
-        <div className="space-y-1.5 sm:space-y-2">
-          {capital.kris.slice(0, 2).map((kri, idx) => (
-            <div key={idx} className="flex items-center justify-between text-xs sm:text-sm">
-              <span className="text-foreground truncate mr-2">{kri.name}</span>
-              <div className="flex items-center gap-1">
-                <span className="font-medium">{kri.value}</span>
-                {getTrendIcon(kri.trend)}
+        <div className="border-t pt-3 sm:pt-4">
+          <p className="text-xs sm:text-sm text-muted-foreground mb-2">Key Risk Indicators</p>
+          <div className="space-y-1.5 sm:space-y-2">
+            {capital.kris.slice(0, 2).map((kri, idx) => (
+              <div key={idx} className="flex items-center justify-between text-xs sm:text-sm">
+                <span className="text-foreground truncate mr-2">{kri.name}</span>
+                <div className="flex items-center gap-1">
+                  <span className="font-medium">{kri.value}</span>
+                  {getTrendIcon(kri.trend)}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
 
-      <div className="mt-3 sm:mt-4 flex items-center text-xs sm:text-sm text-primary font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-        View Details <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 ml-1" aria-hidden="true" />
-      </div>
-    </motion.article>
+        <div className="mt-3 sm:mt-4 flex items-center text-xs sm:text-sm text-primary font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          View Details <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 ml-1" aria-hidden="true" />
+        </div>
+      </motion.article>
+
+      <CapitalDetailPanel
+        capital={capital}
+        isOpen={isPanelOpen}
+        onClose={handleClosePanel}
+      />
+    </>
   );
 });
 
