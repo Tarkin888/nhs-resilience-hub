@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import {
@@ -27,6 +28,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface CapitalDetailPanelProps {
   capital: Capital | null;
@@ -163,7 +165,92 @@ const TimelineItem = ({
   );
 };
 
+// Loading skeleton for the panel content
+const PanelSkeleton = () => (
+  <div className="p-6 space-y-8 animate-fade-in">
+    {/* Score Explanation Skeleton */}
+    <div className="rounded-lg p-5 bg-muted/50">
+      <Skeleton className="h-5 w-32 mb-3" />
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-4/5" />
+        <Skeleton className="h-4 w-3/4" />
+      </div>
+    </div>
+
+    {/* KRI Table Skeleton */}
+    <div>
+      <Skeleton className="h-5 w-40 mb-4" />
+      <div className="border rounded-lg overflow-hidden">
+        <div className="bg-muted/50 px-4 py-3 border-b">
+          <div className="flex gap-4">
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-4 w-12" />
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-4 w-24" />
+          </div>
+        </div>
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className={cn("px-4 py-3 border-b last:border-0", i % 2 === 0 ? "bg-[#F8F9FA]" : "bg-white")}>
+            <div className="flex gap-4 items-center">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-4 w-12" />
+              <Skeleton className="h-4 w-8" />
+              <Skeleton className="h-4 w-12" />
+              <Skeleton className="h-4 w-32" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* Timeline Skeleton */}
+    <div>
+      <Skeleton className="h-5 w-32 mb-4" />
+      <div className="pl-2 space-y-4">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="flex gap-4">
+            <div className="flex flex-col items-center">
+              <Skeleton className="w-3 h-3 rounded-full" />
+              {i < 3 && <Skeleton className="w-0.5 h-12 mt-2" />}
+            </div>
+            <div className="flex-1">
+              <Skeleton className="h-3 w-20 mb-2" />
+              <Skeleton className="h-4 w-full" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* Quick Actions Skeleton */}
+    <div className="border-t pt-6">
+      <Skeleton className="h-5 w-28 mb-4" />
+      <div className="flex gap-3">
+        <Skeleton className="h-9 w-48" />
+        <Skeleton className="h-9 w-40" />
+        <Skeleton className="h-9 w-52" />
+      </div>
+    </div>
+  </div>
+);
+
 const CapitalDetailPanel = ({ capital, isOpen, onClose }: CapitalDetailPanelProps) => {
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Simulate loading when panel opens with new capital
+  useEffect(() => {
+    if (isOpen && capital) {
+      setIsLoading(true);
+      // Simulate brief data loading for smooth UX
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+      }, 400);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, capital?.id]);
+
   if (!capital) return null;
 
   const Icon = iconMap[capital.name] || Coins;
@@ -242,100 +329,104 @@ const CapitalDetailPanel = ({ capital, isOpen, onClose }: CapitalDetailPanelProp
             </div>
 
             {/* Content */}
-            <div className="p-6 space-y-8">
-              {/* Score Explanation */}
-              <section
-                className={cn('rounded-lg p-5', getStatusBgColor(capital.status))}
-              >
-                <h3 className="font-semibold text-foreground mb-2">Current Status</h3>
-                <p className="text-sm text-foreground/90 leading-relaxed">
-                  {details?.explanation || 'No explanation available.'}
-                </p>
-              </section>
+            {isLoading ? (
+              <PanelSkeleton />
+            ) : (
+              <div className="p-6 space-y-8 animate-fade-in">
+                {/* Score Explanation */}
+                <section
+                  className={cn('rounded-lg p-5', getStatusBgColor(capital.status))}
+                >
+                  <h3 className="font-semibold text-foreground mb-2">Current Status</h3>
+                  <p className="text-sm text-foreground/90 leading-relaxed">
+                    {details?.explanation || 'No explanation available.'}
+                  </p>
+                </section>
 
-              {/* Key Risk Indicators Table */}
-              <section>
-                <h3 className="font-semibold text-foreground mb-4">
-                  Key Risk Indicators
-                </h3>
-                <div className="overflow-x-auto border rounded-lg">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b bg-muted/50">
-                        <th className="px-4 py-3 text-left font-semibold text-foreground">
-                          KRI
-                        </th>
-                        <th className="px-4 py-3 text-left font-semibold text-foreground">
-                          Current
-                        </th>
-                        <th className="px-4 py-3 text-left font-semibold text-foreground">
-                          Trend
-                        </th>
-                        <th className="px-4 py-3 text-left font-semibold text-foreground">
-                          Target
-                        </th>
-                        <th className="px-4 py-3 text-left font-semibold text-foreground">
-                          Commentary
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {details?.kris.map((kri, index) => (
-                        <KRIRow key={kri.name} kri={kri} index={index} />
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </section>
+                {/* Key Risk Indicators Table */}
+                <section>
+                  <h3 className="font-semibold text-foreground mb-4">
+                    Key Risk Indicators
+                  </h3>
+                  <div className="overflow-x-auto border rounded-lg">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b bg-muted/50">
+                          <th className="px-4 py-3 text-left font-semibold text-foreground">
+                            KRI
+                          </th>
+                          <th className="px-4 py-3 text-left font-semibold text-foreground">
+                            Current
+                          </th>
+                          <th className="px-4 py-3 text-left font-semibold text-foreground">
+                            Trend
+                          </th>
+                          <th className="px-4 py-3 text-left font-semibold text-foreground">
+                            Target
+                          </th>
+                          <th className="px-4 py-3 text-left font-semibold text-foreground">
+                            Commentary
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {details?.kris.map((kri, index) => (
+                          <KRIRow key={kri.name} kri={kri} index={index} />
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </section>
 
-              {/* Recent Changes Timeline */}
-              <section>
-                <h3 className="font-semibold text-foreground mb-4">Recent Changes</h3>
-                <div className="pl-2">
-                  {details?.recentChanges.map((change, index) => (
-                    <TimelineItem
-                      key={index}
-                      change={change}
-                      isLast={index === (details?.recentChanges.length || 0) - 1}
-                    />
-                  ))}
-                </div>
-              </section>
+                {/* Recent Changes Timeline */}
+                <section>
+                  <h3 className="font-semibold text-foreground mb-4">Recent Changes</h3>
+                  <div className="pl-2">
+                    {details?.recentChanges.map((change, index) => (
+                      <TimelineItem
+                        key={index}
+                        change={change}
+                        isLast={index === (details?.recentChanges.length || 0) - 1}
+                      />
+                    ))}
+                  </div>
+                </section>
 
-              {/* Quick Actions */}
-              <section className="border-t pt-6">
-                <h3 className="font-semibold text-foreground mb-4">Quick Actions</h3>
-                <div className="flex flex-wrap gap-3">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-2 text-[hsl(var(--nhs-blue))] border-[hsl(var(--nhs-blue))]/30 hover:bg-[hsl(var(--nhs-blue))]/5"
-                  >
-                    <FileText className="h-4 w-4" />
-                    View detailed resilience model
-                    <ExternalLink className="h-3 w-3" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-2 text-[hsl(var(--nhs-blue))] border-[hsl(var(--nhs-blue))]/30 hover:bg-[hsl(var(--nhs-blue))]/5"
-                  >
-                    <FlaskConical className="h-4 w-4" />
-                    Scenario test: {details?.relevantScenario.split(' ').slice(0, 2).join(' ')}...
-                    <ExternalLink className="h-3 w-3" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-2 text-[hsl(var(--nhs-blue))] border-[hsl(var(--nhs-blue))]/30 hover:bg-[hsl(var(--nhs-blue))]/5"
-                  >
-                    <Wallet className="h-4 w-4" />
-                    Review enhancement investments
-                    <ExternalLink className="h-3 w-3" />
-                  </Button>
-                </div>
-              </section>
-            </div>
+                {/* Quick Actions */}
+                <section className="border-t pt-6">
+                  <h3 className="font-semibold text-foreground mb-4">Quick Actions</h3>
+                  <div className="flex flex-wrap gap-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-2 text-[hsl(var(--nhs-blue))] border-[hsl(var(--nhs-blue))]/30 hover:bg-[hsl(var(--nhs-blue))]/5"
+                    >
+                      <FileText className="h-4 w-4" />
+                      View detailed resilience model
+                      <ExternalLink className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-2 text-[hsl(var(--nhs-blue))] border-[hsl(var(--nhs-blue))]/30 hover:bg-[hsl(var(--nhs-blue))]/5"
+                    >
+                      <FlaskConical className="h-4 w-4" />
+                      Scenario test: {details?.relevantScenario.split(' ').slice(0, 2).join(' ')}...
+                      <ExternalLink className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-2 text-[hsl(var(--nhs-blue))] border-[hsl(var(--nhs-blue))]/30 hover:bg-[hsl(var(--nhs-blue))]/5"
+                    >
+                      <Wallet className="h-4 w-4" />
+                      Review enhancement investments
+                      <ExternalLink className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </section>
+              </div>
+            )}
           </motion.div>
         </>
       )}

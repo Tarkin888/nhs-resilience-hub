@@ -27,6 +27,7 @@ import {
   RotateCcw,
   TrendingDown,
 } from 'lucide-react';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface ScenarioImpact {
   capital: string;
@@ -351,11 +352,20 @@ export const ScenarioImpactVisualiser = memo(() => {
           <Button
             onClick={runScenario}
             disabled={!selectedScenario || isRunning}
-            className="bg-primary hover:bg-secondary text-primary-foreground gap-2 focus:ring-2 focus:ring-primary focus:ring-offset-2"
-            aria-label="Run selected scenario"
+            className="bg-primary hover:bg-secondary text-primary-foreground gap-2 focus:ring-2 focus:ring-primary focus:ring-offset-2 min-w-[140px]"
+            aria-label={isRunning ? "Running scenario..." : "Run selected scenario"}
           >
-            <Play className="h-4 w-4" aria-hidden="true" />
-            Run Scenario
+            {isRunning ? (
+              <>
+                <LoadingSpinner size="sm" />
+                Running...
+              </>
+            ) : (
+              <>
+                <Play className="h-4 w-4" aria-hidden="true" />
+                Run Scenario
+              </>
+            )}
           </Button>
         </div>
 
