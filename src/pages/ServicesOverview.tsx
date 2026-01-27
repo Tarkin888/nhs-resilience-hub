@@ -29,7 +29,6 @@ import DataSourcesModal from '@/components/DataSourcesModal';
 
 const ServicesOverview = () => {
   const [isMethodologyOpen, setIsMethodologyOpen] = useState(false);
-  const [isTourOpen, setIsTourOpen] = useState(false);
   const [isDataSourcesOpen, setIsDataSourcesOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [executiveFilter, setExecutiveFilter] = useState<string>('all');
@@ -85,7 +84,6 @@ const ServicesOverview = () => {
       <Header 
         isMethodologyOpen={isMethodologyOpen} 
         onMethodologyOpenChange={setIsMethodologyOpen}
-        onStartTour={() => setIsTourOpen(true)}
       />
 
       <main className="max-w-[1400px] mx-auto px-4 md:px-8 py-8">

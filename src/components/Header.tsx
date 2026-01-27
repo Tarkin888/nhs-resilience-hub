@@ -1,27 +1,18 @@
 import { Link, useLocation } from 'react-router-dom';
-import { HelpCircle, PlayCircle, ClipboardList } from 'lucide-react';
+import { HelpCircle, ClipboardList } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import MethodologyPanel from './MethodologyPanel';
 import { cn } from '@/lib/utils';
 
-const TOUR_DISMISSED_SESSION_KEY = 'nhs-resilience-tour-dismissed-session';
-
 interface HeaderProps {
   isMethodologyOpen: boolean;
   onMethodologyOpenChange: (open: boolean) => void;
-  onStartTour: () => void;
 }
 
-const Header = ({ isMethodologyOpen, onMethodologyOpenChange, onStartTour }: HeaderProps) => {
+const Header = ({ isMethodologyOpen, onMethodologyOpenChange }: HeaderProps) => {
   const location = useLocation();
   
-  const handleStartTour = () => {
-    // Clear the session dismissal flag so tour can reopen
-    sessionStorage.removeItem(TOUR_DISMISSED_SESSION_KEY);
-    onStartTour();
-  };
-
   const isServicesActive = location.pathname.startsWith('/services');
 
   return (
@@ -88,16 +79,6 @@ const Header = ({ isMethodologyOpen, onMethodologyOpenChange, onStartTour }: Hea
                 <HelpCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
               </Button>
 
-              <Button 
-                size="sm" 
-                className="gap-1.5 sm:gap-2 text-xs sm:text-sm focus:ring-2 focus:ring-primary focus:ring-offset-2" 
-                onClick={handleStartTour}
-                aria-label="Start demo walkthrough"
-              >
-                <PlayCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
-                <span className="hidden sm:inline">Demo Walkthrough</span>
-                <span className="sm:hidden">Demo</span>
-              </Button>
             </div>
           </div>
         </div>
