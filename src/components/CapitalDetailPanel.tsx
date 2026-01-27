@@ -237,17 +237,29 @@ const PanelSkeleton = () => (
 );
 
 const CapitalDetailPanel = ({ capital, isOpen, onClose }: CapitalDetailPanelProps) => {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isContentReady, setIsContentReady] = useState(false);
+  const [showContent, setShowContent] = useState(false);
 
-  // Simulate loading when panel opens with new capital
+  // Coordinate panel open with content reveal for smooth animation
   useEffect(() => {
     if (isOpen && capital) {
-      setIsLoading(true);
-      // Simulate brief data loading for smooth UX
-      const timer = setTimeout(() => {
-        setIsLoading(false);
-      }, 400);
-      return () => clearTimeout(timer);
+      // Reset states when opening
+      setIsContentReady(false);
+      setShowContent(false);
+      
+      // Pre-render content immediately, show after panel slides in
+      const contentTimer = setTimeout(() => {
+        setIsContentReady(true);
+        // Stagger content reveal for polish
+        requestAnimationFrame(() => {
+          setShowContent(true);
+        });
+      }, 150); // Slightly before panel animation completes
+      
+      return () => clearTimeout(contentTimer);
+    } else {
+      setIsContentReady(false);
+      setShowContent(false);
     }
   }, [isOpen, capital?.id]);
 
@@ -259,25 +271,29 @@ const CapitalDetailPanel = ({ capital, isOpen, onClose }: CapitalDetailPanelProp
   const trendArrow = getTrendArrow(capital.trend);
 
   return (
-    <AnimatePresence>
+    <AnimatePresence mode="sync">
       {isOpen && (
         <>
-          {/* Overlay */}
+          {/* Overlay - faster fade for snappier feel */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
             className="fixed inset-0 bg-black/50 z-40"
             onClick={onClose}
           />
 
-          {/* Panel */}
+          {/* Panel - coordinated with overlay */}
           <motion.div
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ duration: 0.3, ease: 'easeOut' }}
+            initial={{ x: '100%', opacity: 0.8 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: '100%', opacity: 0 }}
+            transition={{ 
+              duration: 0.25, 
+              ease: [0.32, 0.72, 0, 1], // Custom easing for smooth deceleration
+              opacity: { duration: 0.15 }
+            }}
             className="fixed right-0 top-0 h-full bg-white shadow-2xl z-50 overflow-y-auto
                        w-full md:w-[600px] lg:w-1/2 lg:min-w-[600px]"
           >
@@ -328,11 +344,16 @@ const CapitalDetailPanel = ({ capital, isOpen, onClose }: CapitalDetailPanelProp
               </div>
             </div>
 
-            {/* Content */}
-            {isLoading ? (
+            {/* Content - smooth fade-in coordinated with panel */}
+            {!isContentReady ? (
               <PanelSkeleton />
             ) : (
-              <div className="p-6 space-y-8 animate-fade-in">
+              <motion.div 
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: showContent ? 1 : 0, y: showContent ? 0 : 8 }}
+                transition={{ duration: 0.2, ease: 'easeOut' }}
+                className="p-6 space-y-8"
+              >
                 {/* Score Explanation */}
                 <section
                   className={cn('rounded-lg p-5', getStatusBgColor(capital.status))}
@@ -425,7 +446,7 @@ const CapitalDetailPanel = ({ capital, isOpen, onClose }: CapitalDetailPanelProp
                     </Button>
                   </div>
                 </section>
-              </div>
+              </motion.div>
             )}
           </motion.div>
         </>
