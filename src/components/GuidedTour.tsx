@@ -92,8 +92,27 @@ export const GuidedTour = ({ isOpen, onClose }: GuidedTourProps) => {
 
     const target = document.querySelector(step.targetSelector);
     if (target) {
+      // Scroll element into view if needed
       const rect = target.getBoundingClientRect();
-      setTargetRect(rect);
+      const isInViewport = 
+        rect.top >= 0 &&
+        rect.left >= 0 &&
+        rect.bottom <= window.innerHeight &&
+        rect.right <= window.innerWidth;
+
+      if (!isInViewport) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Wait for scroll to complete before updating rect
+        setTimeout(() => {
+          const newRect = target.getBoundingClientRect();
+          setTargetRect(newRect);
+        }, 300);
+      } else {
+        setTargetRect(rect);
+      }
+    } else {
+      // If target not found, clear rect so popup still shows centered
+      setTargetRect(null);
     }
   }, [step]);
 
@@ -125,27 +144,42 @@ export const GuidedTour = ({ isOpen, onClose }: GuidedTourProps) => {
     };
   }, [isOpen, currentStep, updateTargetPosition]);
 
-  const handleNext = () => {
+  const completeTour = useCallback(() => {
+    localStorage.setItem(TOUR_COMPLETED_KEY, 'true');
+    handleTourExit();
+  }, [handleTourExit]);
+
+  const handleNext = useCallback(() => {
     if (currentStep < tourSteps.length - 1) {
-      setCurrentStep((prev) => prev + 1);
+      const nextStep = currentStep + 1;
+      const nextTarget = document.querySelector(tourSteps[nextStep].targetSelector);
+      
+      // Temporarily enable scroll to allow scrollIntoView
+      document.body.style.overflow = 'auto';
+      
+      // Scroll next target into view before advancing
+      if (nextTarget) {
+        nextTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      
+      // Small delay to allow scroll to complete, then re-lock and advance
+      setTimeout(() => {
+        document.body.style.overflow = 'hidden';
+        setCurrentStep(nextStep);
+      }, 350);
     } else {
       completeTour();
     }
-  };
+  }, [currentStep, completeTour]);
 
-  const completeTour = () => {
-    localStorage.setItem(TOUR_COMPLETED_KEY, 'true');
-    handleTourExit();
-  };
-
-  const handleSkip = () => {
+  const handleSkip = useCallback(() => {
     setShowSkipConfirm(true);
-  };
+  }, []);
 
-  const confirmSkip = () => {
+  const confirmSkip = useCallback(() => {
     localStorage.setItem(TOUR_COMPLETED_KEY, 'true');
     handleTourExit();
-  };
+  }, [handleTourExit]);
 
   const getPopupPosition = () => {
     if (!targetRect) return { top: '50%', left: '50%' };
