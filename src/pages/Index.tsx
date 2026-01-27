@@ -1,4 +1,5 @@
-import { useState, lazy, Suspense, memo } from 'react';
+import { useState, memo } from 'react';
+import { Link } from 'react-router-dom';
 import DemoBanner from '@/components/DemoBanner';
 import Header from '@/components/Header';
 import QuickStatsBar from '@/components/QuickStatsBar';
@@ -97,24 +98,21 @@ const Index = () => {
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
             <p>© 2025 St. Mary's NHS Foundation Trust. All rights reserved.</p>
             <div className="flex items-center gap-4">
-              <a 
-                href="#" 
+              <Link 
+                to="/privacy"
                 className="hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
-                aria-label="Privacy Policy"
               >
                 Privacy Policy
-              </a>
-              <a 
-                href="#" 
+              </Link>
+              <Link 
+                to="/accessibility"
                 className="hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
-                aria-label="Accessibility"
               >
                 Accessibility
-              </a>
+              </Link>
               <a 
-                href="#" 
+                href="mailto:support@stmarys-nhs.example.uk"
                 className="hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
-                aria-label="Support"
               >
                 Support
               </a>
