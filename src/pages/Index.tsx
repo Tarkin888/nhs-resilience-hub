@@ -10,6 +10,7 @@ import { ScenarioImpactVisualiser } from '@/components/ScenarioImpactVisualiser'
 import CapitalCard from '@/components/CapitalCard';
 import OverallScore from '@/components/OverallScore';
 import GuidedTour from '@/components/GuidedTour';
+import DataSourcesModal from '@/components/DataSourcesModal';
 import { Skeleton } from '@/components/ui/skeleton';
 import { capitals, alerts, essentialServices } from '@/lib/data';
 
@@ -36,6 +37,7 @@ const SectionSkeleton = () => (
 const Index = () => {
   const [isMethodologyOpen, setIsMethodologyOpen] = useState(false);
   const [isTourOpen, setIsTourOpen] = useState(false);
+  const [isDataSourcesOpen, setIsDataSourcesOpen] = useState(false);
 
   const handleStartTour = () => {
     setIsTourOpen(true);
@@ -44,7 +46,10 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Demo Banner - Full bleed */}
-      <DemoBanner onOpenMethodology={() => setIsMethodologyOpen(true)} />
+      <DemoBanner 
+        onOpenMethodology={() => setIsMethodologyOpen(true)} 
+        onOpenDataSources={() => setIsDataSourcesOpen(true)}
+      />
       
       {/* Header - Full bleed */}
       <Header 
@@ -123,6 +128,9 @@ const Index = () => {
 
       {/* Guided Tour */}
       <GuidedTour isOpen={isTourOpen} onClose={() => setIsTourOpen(false)} />
+
+      {/* Data Sources Modal */}
+      <DataSourcesModal isOpen={isDataSourcesOpen} onClose={() => setIsDataSourcesOpen(false)} />
     </div>
   );
 };

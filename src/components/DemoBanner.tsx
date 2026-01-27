@@ -7,9 +7,10 @@ import {
 
 interface DemoBannerProps {
   onOpenMethodology: () => void;
+  onOpenDataSources: () => void;
 }
 
-const DemoBanner = ({ onOpenMethodology }: DemoBannerProps) => {
+const DemoBanner = ({ onOpenMethodology, onOpenDataSources }: DemoBannerProps) => {
   return (
     <div className="bg-demo text-demo-foreground">
       <div className="container mx-auto px-4 py-3 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-sm">
@@ -44,13 +45,13 @@ const DemoBanner = ({ onOpenMethodology }: DemoBannerProps) => {
             Methodology Guide
             <ExternalLink className="h-3 w-3" />
           </button>
-          <a 
-            href="#data-sources" 
+          <button 
+            onClick={onOpenDataSources}
             className="flex items-center gap-1 hover:underline hover:text-primary transition-colors"
           >
             Data Sources
             <ExternalLink className="h-3 w-3" />
-          </a>
+          </button>
         </div>
       </div>
     </div>

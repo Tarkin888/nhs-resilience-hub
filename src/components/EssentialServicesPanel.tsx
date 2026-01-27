@@ -1,22 +1,23 @@
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useState } from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle, AlertTriangle, XCircle, ChevronRight } from 'lucide-react';
 import { EssentialService } from '@/types';
 import { cn } from '@/lib/utils';
 import { format, isToday, isYesterday } from 'date-fns';
+import ServiceDetailSheet from './ServiceDetailSheet';
 
 interface EssentialServicesPanelProps {
   services: EssentialService[];
 }
 
-const ServiceCard = memo(({ service, index, formatTimestamp }: {
+const ServiceCard = memo(({ service, index, formatTimestamp, onViewDetails }: {
   service: EssentialService;
   index: number;
   formatTimestamp: (date: Date) => string;
+  onViewDetails: (service: EssentialService) => void;
 }) => {
   const isOperational = service.status === 'operational';
   const isDegraded = service.status === 'degraded';
-  const isAtRisk = service.status === 'at-risk';
 
   const getStatusConfig = useCallback(() => {
     if (isOperational) {
@@ -46,20 +47,22 @@ const ServiceCard = memo(({ service, index, formatTimestamp }: {
   const statusConfig = getStatusConfig();
   const StatusIcon = statusConfig.icon;
 
+  const handleClick = () => onViewDetails(service);
+
   return (
     <motion.article
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.08 }}
       className="bg-background border rounded-lg p-3 sm:p-4 transition-all duration-300 hover:shadow-card-hover cursor-pointer flex flex-col min-h-[140px] sm:min-h-[180px] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-      onClick={() => console.log('View service:', service.id)}
+      onClick={handleClick}
       tabIndex={0}
       role="button"
       aria-label={`${service.name} - Status: ${statusConfig.label}`}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          console.log('View service:', service.id);
+          handleClick();
         }
       }}
     >
@@ -94,7 +97,7 @@ const ServiceCard = memo(({ service, index, formatTimestamp }: {
           className="text-[10px] sm:text-xs text-primary hover:underline flex items-center gap-0.5 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 rounded"
           onClick={(e) => {
             e.stopPropagation();
-            console.log('View details:', service.id);
+            handleClick();
           }}
           aria-label={`View details for ${service.name}`}
         >
@@ -109,6 +112,9 @@ const ServiceCard = memo(({ service, index, formatTimestamp }: {
 ServiceCard.displayName = 'ServiceCard';
 
 const EssentialServicesPanel = memo(({ services }: EssentialServicesPanelProps) => {
+  const [selectedService, setSelectedService] = useState<EssentialService | null>(null);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+
   const formatTimestamp = useCallback((date: Date) => {
     const timeStr = format(date, 'HH:mm');
     if (isToday(date)) {
@@ -118,6 +124,15 @@ const EssentialServicesPanel = memo(({ services }: EssentialServicesPanelProps) 
       return `Yesterday, ${timeStr}`;
     }
     return format(date, 'dd MMM, HH:mm');
+  }, []);
+
+  const handleViewDetails = useCallback((service: EssentialService) => {
+    setSelectedService(service);
+    setIsSheetOpen(true);
+  }, []);
+
+  const handleCloseSheet = useCallback(() => {
+    setIsSheetOpen(false);
   }, []);
 
   return (
@@ -140,9 +155,17 @@ const EssentialServicesPanel = memo(({ services }: EssentialServicesPanelProps) 
             service={service}
             index={index}
             formatTimestamp={formatTimestamp}
+            onViewDetails={handleViewDetails}
           />
         ))}
       </div>
+
+      {/* Service Detail Sheet */}
+      <ServiceDetailSheet
+        service={selectedService}
+        isOpen={isSheetOpen}
+        onClose={handleCloseSheet}
+      />
     </section>
   );
 });
