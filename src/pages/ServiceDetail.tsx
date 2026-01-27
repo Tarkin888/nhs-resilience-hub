@@ -27,7 +27,6 @@ import ContingencyPlansCard from '@/components/services/ContingencyPlansCard';
 const ServiceDetail = () => {
   const { serviceId } = useParams<{ serviceId: string }>();
   const [isMethodologyOpen, setIsMethodologyOpen] = useState(false);
-  const [isTourOpen, setIsTourOpen] = useState(false);
   const [isDataSourcesOpen, setIsDataSourcesOpen] = useState(false);
 
   const service = serviceId ? getServiceById(serviceId) : undefined;
@@ -68,7 +67,6 @@ const ServiceDetail = () => {
       <Header 
         isMethodologyOpen={isMethodologyOpen} 
         onMethodologyOpenChange={setIsMethodologyOpen}
-        onStartTour={() => setIsTourOpen(true)}
       />
 
       <main className="max-w-[1400px] mx-auto px-4 md:px-8 py-8">
