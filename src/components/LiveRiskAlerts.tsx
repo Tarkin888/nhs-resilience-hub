@@ -1,22 +1,26 @@
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useState } from 'react';
 import { motion } from 'framer-motion';
 import { AlertCircle, AlertTriangle, ChevronRight } from 'lucide-react';
 import { Alert } from '@/types';
 import { cn } from '@/lib/utils';
 import { format, isToday, isYesterday } from 'date-fns';
 import { Button } from '@/components/ui/button';
+import AlertDetailSheet from './AlertDetailSheet';
 
 interface LiveRiskAlertsProps {
   alerts: Alert[];
 }
 
-const AlertCard = memo(({ alert, index, formatTimestamp }: {
+const AlertCard = memo(({ alert, index, formatTimestamp, onViewDetails }: {
   alert: Alert;
   index: number;
   formatTimestamp: (date: Date) => string;
+  onViewDetails: (alert: Alert) => void;
 }) => {
   const isRed = alert.severity === 'red';
   const isAmber = alert.severity === 'amber';
+
+  const handleClick = () => onViewDetails(alert);
 
   return (
     <motion.div
@@ -30,6 +34,7 @@ const AlertCard = memo(({ alert, index, formatTimestamp }: {
       )}
       role="article"
       aria-label={`${isRed ? 'Critical' : 'Warning'} alert: ${alert.title}`}
+      onClick={handleClick}
     >
       {/* Severity Icon */}
       <motion.div
@@ -72,7 +77,10 @@ const AlertCard = memo(({ alert, index, formatTimestamp }: {
         variant="ghost"
         size="sm"
         className="flex-shrink-0 text-xs text-muted-foreground hover:text-foreground self-start sm:self-center focus:ring-2 focus:ring-primary focus:ring-offset-2"
-        onClick={() => console.log('View details:', alert.id)}
+        onClick={(e) => {
+          e.stopPropagation();
+          handleClick();
+        }}
         aria-label={`View details for ${alert.title}`}
       >
         <span className="hidden sm:inline">View Details</span>
@@ -86,6 +94,9 @@ const AlertCard = memo(({ alert, index, formatTimestamp }: {
 AlertCard.displayName = 'AlertCard';
 
 const LiveRiskAlerts = memo(({ alerts }: LiveRiskAlertsProps) => {
+  const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+
   // Sort alerts by severity (red first) then by timestamp
   const sortedAlerts = [...alerts].sort((a, b) => {
     if (a.severity === 'red' && b.severity !== 'red') return -1;
@@ -102,6 +113,15 @@ const LiveRiskAlerts = memo(({ alerts }: LiveRiskAlertsProps) => {
       return `Yesterday, ${timeStr}`;
     }
     return format(date, 'dd MMM, HH:mm');
+  }, []);
+
+  const handleViewDetails = useCallback((alert: Alert) => {
+    setSelectedAlert(alert);
+    setIsSheetOpen(true);
+  }, []);
+
+  const handleCloseSheet = useCallback(() => {
+    setIsSheetOpen(false);
   }, []);
 
   const redAlertCount = alerts.filter((a) => a.severity === 'red').length;
@@ -140,9 +160,17 @@ const LiveRiskAlerts = memo(({ alerts }: LiveRiskAlertsProps) => {
             alert={alert}
             index={index}
             formatTimestamp={formatTimestamp}
+            onViewDetails={handleViewDetails}
           />
         ))}
       </div>
+
+      {/* Alert Detail Sheet */}
+      <AlertDetailSheet
+        alert={selectedAlert}
+        isOpen={isSheetOpen}
+        onClose={handleCloseSheet}
+      />
     </section>
   );
 });
