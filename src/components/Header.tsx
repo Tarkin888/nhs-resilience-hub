@@ -3,6 +3,8 @@ import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import MethodologyPanel from './MethodologyPanel';
 
+const TOUR_DISMISSED_SESSION_KEY = 'nhs-resilience-tour-dismissed-session';
+
 interface HeaderProps {
   isMethodologyOpen: boolean;
   onMethodologyOpenChange: (open: boolean) => void;
@@ -10,6 +12,12 @@ interface HeaderProps {
 }
 
 const Header = ({ isMethodologyOpen, onMethodologyOpenChange, onStartTour }: HeaderProps) => {
+  const handleStartTour = () => {
+    // Clear the session dismissal flag so tour can reopen
+    sessionStorage.removeItem(TOUR_DISMISSED_SESSION_KEY);
+    onStartTour();
+  };
+
   return (
     <>
       <header data-tour="header" className="bg-card border-b shadow-card">
@@ -47,7 +55,7 @@ const Header = ({ isMethodologyOpen, onMethodologyOpenChange, onStartTour }: Hea
               <Button 
                 size="sm" 
                 className="gap-1.5 sm:gap-2 text-xs sm:text-sm focus:ring-2 focus:ring-primary focus:ring-offset-2" 
-                onClick={onStartTour}
+                onClick={handleStartTour}
                 aria-label="Start demo walkthrough"
               >
                 <PlayCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
