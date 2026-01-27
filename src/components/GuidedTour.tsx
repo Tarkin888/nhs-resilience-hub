@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -70,29 +70,66 @@ interface GuidedTourProps {
 }
 
 const TOUR_COMPLETED_KEY = 'nhs-resilience-tour-completed';
+const TOUR_DISMISSED_SESSION_KEY = 'nhs-resilience-tour-dismissed-session';
 
 export const GuidedTour = ({ isOpen, onClose }: GuidedTourProps) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
   const [showSkipConfirm, setShowSkipConfirm] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  
+  // Refs to track mounted state and prevent stale closures
+  const isMountedRef = useRef(true);
+  const scrollListenerRef = useRef<(() => void) | null>(null);
+  const resizeListenerRef = useRef<(() => void) | null>(null);
 
   const step = tourSteps[currentStep];
 
+  // Check if tour was dismissed this session - prevent auto-reopen
+  useEffect(() => {
+    if (isOpen) {
+      const wasDismissedThisSession = sessionStorage.getItem(TOUR_DISMISSED_SESSION_KEY);
+      if (wasDismissedThisSession === 'true') {
+        // Tour was already dismissed, close it immediately
+        onClose();
+      }
+    }
+  }, [isOpen, onClose]);
+
   // Cleanup function to reset all tour state
   const handleTourExit = useCallback(() => {
+    if (!isMountedRef.current) return;
+    
+    // Mark as dismissed for this session
+    sessionStorage.setItem(TOUR_DISMISSED_SESSION_KEY, 'true');
+    
+    // Reset all state
     setCurrentStep(0);
     setTargetRect(null);
     setShowSkipConfirm(false);
-    document.body.style.overflow = 'auto'; // Re-enable scroll
+    setIsTransitioning(false);
+    
+    // Re-enable scroll
+    document.body.style.overflow = 'auto';
+    
+    // Remove any lingering event listeners
+    if (scrollListenerRef.current) {
+      window.removeEventListener('scroll', scrollListenerRef.current, true);
+      scrollListenerRef.current = null;
+    }
+    if (resizeListenerRef.current) {
+      window.removeEventListener('resize', resizeListenerRef.current);
+      resizeListenerRef.current = null;
+    }
+    
     onClose();
   }, [onClose]);
 
   const updateTargetPosition = useCallback(() => {
-    if (!step) return;
+    if (!isMountedRef.current || !step || isTransitioning) return;
 
     const target = document.querySelector(step.targetSelector);
     if (target) {
-      // Scroll element into view if needed
       const rect = target.getBoundingClientRect();
       const isInViewport = 
         rect.top >= 0 &&
@@ -101,46 +138,77 @@ export const GuidedTour = ({ isOpen, onClose }: GuidedTourProps) => {
         rect.right <= window.innerWidth;
 
       if (!isInViewport) {
+        // Temporarily enable scroll
+        document.body.style.overflow = 'auto';
         target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        // Wait for scroll to complete before updating rect
+        
         setTimeout(() => {
-          const newRect = target.getBoundingClientRect();
-          setTargetRect(newRect);
+          if (isMountedRef.current) {
+            document.body.style.overflow = 'hidden';
+            const newRect = target.getBoundingClientRect();
+            setTargetRect(newRect);
+          }
         }, 300);
       } else {
         setTargetRect(rect);
       }
     } else {
-      // If target not found, clear rect so popup still shows centered
       setTargetRect(null);
     }
-  }, [step]);
+  }, [step, isTransitioning]);
+
+  // Track mounted state
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   // Lock scroll when tour is active
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !isTransitioning) {
       document.body.style.overflow = 'hidden';
-    } else {
+    } else if (!isOpen) {
       document.body.style.overflow = 'auto';
     }
 
     return () => {
       document.body.style.overflow = 'auto';
     };
-  }, [isOpen]);
+  }, [isOpen, isTransitioning]);
 
+  // Set up event listeners with proper cleanup
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {
+      // Clean up listeners when closed
+      if (scrollListenerRef.current) {
+        window.removeEventListener('scroll', scrollListenerRef.current, true);
+        scrollListenerRef.current = null;
+      }
+      if (resizeListenerRef.current) {
+        window.removeEventListener('resize', resizeListenerRef.current);
+        resizeListenerRef.current = null;
+      }
+      return;
+    }
 
     updateTargetPosition();
 
-    // Update position on scroll/resize
-    window.addEventListener('scroll', updateTargetPosition, true);
-    window.addEventListener('resize', updateTargetPosition);
+    // Create new listener references
+    scrollListenerRef.current = updateTargetPosition;
+    resizeListenerRef.current = updateTargetPosition;
+
+    window.addEventListener('scroll', scrollListenerRef.current, true);
+    window.addEventListener('resize', resizeListenerRef.current);
 
     return () => {
-      window.removeEventListener('scroll', updateTargetPosition, true);
-      window.removeEventListener('resize', updateTargetPosition);
+      if (scrollListenerRef.current) {
+        window.removeEventListener('scroll', scrollListenerRef.current, true);
+      }
+      if (resizeListenerRef.current) {
+        window.removeEventListener('resize', resizeListenerRef.current);
+      }
     };
   }, [isOpen, currentStep, updateTargetPosition]);
 
@@ -150,27 +218,31 @@ export const GuidedTour = ({ isOpen, onClose }: GuidedTourProps) => {
   }, [handleTourExit]);
 
   const handleNext = useCallback(() => {
+    if (isTransitioning) return;
+    
     if (currentStep < tourSteps.length - 1) {
+      setIsTransitioning(true);
       const nextStep = currentStep + 1;
       const nextTarget = document.querySelector(tourSteps[nextStep].targetSelector);
       
-      // Temporarily enable scroll to allow scrollIntoView
+      // Temporarily enable scroll
       document.body.style.overflow = 'auto';
       
-      // Scroll next target into view before advancing
       if (nextTarget) {
         nextTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
       
-      // Small delay to allow scroll to complete, then re-lock and advance
       setTimeout(() => {
-        document.body.style.overflow = 'hidden';
-        setCurrentStep(nextStep);
+        if (isMountedRef.current) {
+          document.body.style.overflow = 'hidden';
+          setCurrentStep(nextStep);
+          setIsTransitioning(false);
+        }
       }, 350);
     } else {
       completeTour();
     }
-  }, [currentStep, completeTour]);
+  }, [currentStep, completeTour, isTransitioning]);
 
   const handleSkip = useCallback(() => {
     setShowSkipConfirm(true);
