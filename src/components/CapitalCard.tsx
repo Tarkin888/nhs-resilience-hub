@@ -122,7 +122,7 @@ const CapitalCard = memo(({ capital, index }: CapitalCardProps) => {
         </div>
 
         <div className="mt-3 sm:mt-4 flex items-center text-xs sm:text-sm text-primary font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          View Details <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 ml-1" aria-hidden="true" />
+          View {capital.name} Details <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 ml-1" aria-hidden="true" />
         </div>
       </motion.article>
 
