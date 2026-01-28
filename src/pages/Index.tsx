@@ -9,6 +9,7 @@ import EssentialServicesPanel from '@/components/EssentialServicesPanel';
 import { ScenarioImpactVisualiser } from '@/components/ScenarioImpactVisualiser';
 import CapitalCard from '@/components/CapitalCard';
 import DataSourcesModal from '@/components/DataSourcesModal';
+import StatusLegend from '@/components/StatusLegend';
 import { Skeleton } from '@/components/ui/skeleton';
 import { capitals, alerts, essentialServices } from '@/lib/data';
 
@@ -37,11 +38,14 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Demo Banner - Full bleed */}
+      {/* Demo Banner - Full bleed, sticky */}
       <DemoBanner 
         onOpenMethodology={() => setIsMethodologyOpen(true)} 
         onOpenDataSources={() => setIsDataSourcesOpen(true)}
       />
+      
+      {/* Status Legend - Fixed position, top-right */}
+      <StatusLegend />
       
       {/* Header - Full bleed */}
       <Header 
