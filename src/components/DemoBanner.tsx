@@ -25,7 +25,7 @@ const DemoBanner = ({ onOpenMethodology, onOpenDataSources }: DemoBannerProps) =
             Illustrative data for St. Mary's NHS Foundation Trust
           </span>
           <span className="hidden sm:inline text-muted-foreground">|</span>
-          <span className="font-medium text-primary">Built using ResilienC Framework</span>
+          <span className="font-medium text-primary">ResilienC Framework + xPercept.ai</span>
           
           <Tooltip>
             <TooltipTrigger asChild>
