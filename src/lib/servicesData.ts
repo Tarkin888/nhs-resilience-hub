@@ -23,7 +23,7 @@ export const detailedServices: DetailedEssentialService[] = [
     status: 'operational',
     statusReason: 'All pathways functioning within tolerance thresholds',
     lastUpdated: new Date('2025-01-27T08:30:00'),
-    executiveOwner: 'Dr. Sarah Mitchell',
+    executiveOwner: 'Chief Operating Officer',
     lastTested: new Date('2025-01-15'),
     
     description: 'Emergency care services provide urgent and emergency medical treatment to patients presenting at A&E or via ambulance. This includes resuscitation, emergency assessment, diagnostics, treatment, and admission or discharge decision-making.\n\nThe service operates 24/7 and is the primary point of entry for acute medical and surgical emergencies. It serves approximately 150,000 patients annually and is a critical component of the regional trauma network.',
@@ -415,6 +415,7 @@ export const detailedServices: DetailedEssentialService[] = [
     
     internalDependencies: [
       { name: 'PICU Beds', type: 'facility', criticality: 'critical', singlePointOfFailure: true },
+      { name: 'Crisis Team Out-of-Hours Cover', type: 'staff', criticality: 'critical', singlePointOfFailure: true },
       { name: 'Liaison Psychiatry', type: 'staff', criticality: 'critical', singlePointOfFailure: false },
       { name: 'Approved Mental Health Professionals', type: 'staff', criticality: 'critical', singlePointOfFailure: false },
       { name: 'Section 12 Doctors', type: 'staff', criticality: 'critical', singlePointOfFailure: false }
