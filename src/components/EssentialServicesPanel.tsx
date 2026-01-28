@@ -1,10 +1,15 @@
 import { memo, useCallback, useState } from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle, AlertTriangle, XCircle, ChevronRight } from 'lucide-react';
+import { CheckCircle, AlertTriangle, XCircle, ChevronRight, Info } from 'lucide-react';
 import { EssentialService } from '@/types';
 import { cn } from '@/lib/utils';
 import { format, isToday, isYesterday } from 'date-fns';
 import ServiceDetailSheet from './ServiceDetailSheet';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface EssentialServicesPanelProps {
   services: EssentialService[];
@@ -142,9 +147,53 @@ const EssentialServicesPanel = memo(({ services }: EssentialServicesPanelProps) 
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h2 id="essential-services-heading" className="text-lg sm:text-xl font-bold text-foreground">
-          Essential Services Status
-        </h2>
+        <div className="flex items-center gap-2">
+          <h2 id="essential-services-heading" className="text-lg sm:text-xl font-bold text-foreground">
+            Essential Services Status
+          </h2>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button 
+                className="w-5 h-5 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
+                aria-label="Learn about impact tolerances"
+              >
+                <Info className="h-3.5 w-3.5 text-muted-foreground" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent 
+              side="bottom" 
+              align="start"
+              className="max-w-xs p-4 bg-[hsl(var(--tooltip-dark))] text-[hsl(var(--tooltip-dark-foreground))] border-0"
+            >
+              <div className="space-y-2 text-sm">
+                <p className="font-semibold">Impact Tolerance:</p>
+                <p className="text-xs text-muted-foreground">
+                  Maximum acceptable disruption before serious harm occurs. For example:
+                </p>
+                <ul className="text-xs space-y-1 ml-2">
+                  <li className="flex items-start gap-1.5">
+                    <span className="text-success mt-0.5">●</span>
+                    <span><strong>85-95%</strong> meeting 4hr standard = Degraded Service</span>
+                  </li>
+                  <li className="flex items-start gap-1.5">
+                    <span className="text-warning mt-0.5">●</span>
+                    <span><strong>Below 85%</strong> = Minimum Viable Service (serious harm risk)</span>
+                  </li>
+                  <li className="flex items-start gap-1.5">
+                    <span className="text-destructive mt-0.5">●</span>
+                    <span><strong>Below 75%</strong> = Service Failure (Board escalation)</span>
+                  </li>
+                </ul>
+                <a 
+                  href="/services" 
+                  className="text-xs text-primary hover:underline flex items-center gap-1 mt-2"
+                >
+                  View full impact tolerance framework →
+                </a>
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        </div>
       </div>
 
       {/* Service Cards Grid */}
