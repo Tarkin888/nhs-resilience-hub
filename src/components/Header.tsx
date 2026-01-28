@@ -37,39 +37,48 @@ const Header = ({ isMethodologyOpen, onMethodologyOpenChange }: HeaderProps) => 
                 <Link
                   to="/"
                   className={cn(
-                    "px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
+                    "relative px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200",
                     location.pathname === '/' 
-                      ? "bg-primary/10 text-primary" 
+                      ? "text-primary" 
                       : "text-muted-foreground hover:text-foreground hover:bg-muted"
                   )}
                 >
                   Dashboard
+                  {location.pathname === '/' && (
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-primary rounded-full" />
+                  )}
                 </Link>
                 <Link
                   to="/services"
                   className={cn(
-                    "px-3 py-1.5 text-sm font-medium rounded-md transition-colors flex items-center gap-1.5",
+                    "relative px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 flex items-center gap-1.5",
                     isServicesActive
-                      ? "bg-primary/10 text-primary" 
+                      ? "text-primary" 
                       : "text-muted-foreground hover:text-foreground hover:bg-muted"
                   )}
                 >
                   <ClipboardList className="h-4 w-4" />
                   <span className="hidden sm:inline">Essential Services</span>
                   <span className="sm:hidden">Services</span>
+                  {isServicesActive && (
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-primary rounded-full" />
+                  )}
                 </Link>
                 <Link
                   to="/scenarios/exercises"
                   className={cn(
-                    "px-3 py-1.5 text-sm font-medium rounded-md transition-colors flex items-center gap-1.5",
+                    "relative px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 flex items-center gap-1.5",
                     isScenariosActive
-                      ? "bg-primary/10 text-primary" 
+                      ? "text-primary" 
                       : "text-muted-foreground hover:text-foreground hover:bg-muted"
                   )}
                 >
                   <FlaskConical className="h-4 w-4" />
                   <span className="hidden sm:inline">Scenario Testing</span>
                   <span className="sm:hidden">Scenarios</span>
+                  {isScenariosActive && (
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-primary rounded-full" />
+                  )}
                 </Link>
               </nav>
             </div>
