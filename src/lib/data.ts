@@ -46,9 +46,9 @@ export const capitals: Capital[] = [
       },
       {
         name: 'Bed Occupancy',
-        value: '94.5%',
+        value: '87%',
         trend: 'stable',
-        commentary: 'Above 92% threshold',
+        commentary: 'Within normal range 85-92%',
         dataSource: 'Operational Dashboard',
         sourceType: 'standard',
         lastUpdated: new Date('2025-01-15'),
@@ -141,9 +141,9 @@ export const capitals: Capital[] = [
 export const alerts: Alert[] = [
   {
     id: 'alert-1',
-    severity: 'red',
-    title: 'Critical care beds at 94% occupancy',
-    description: 'Approaching impact tolerance threshold of 95%. May need to activate mutual aid protocols.',
+    severity: 'amber',
+    title: 'Critical care beds at 87% occupancy',
+    description: 'Monitoring capacity. Normal range 85-92%.',
     timestamp: new Date('2025-01-24T09:15:00'),
     relatedCapital: 'Operational',
     actionUrl: '/operations/bed-management',
