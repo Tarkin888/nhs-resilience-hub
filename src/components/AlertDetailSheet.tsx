@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { format } from 'date-fns';
-import { AlertCircle, AlertTriangle, Clock, Link as LinkIcon, Building2, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { AlertCircle, AlertTriangle, Clock, Link as LinkIcon, Building2, ArrowRight, Calendar } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
@@ -13,7 +14,6 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Alert } from '@/types';
 import { cn } from '@/lib/utils';
-
 interface AlertDetailSheetProps {
   alert: Alert | null;
   isOpen: boolean;
@@ -21,6 +21,8 @@ interface AlertDetailSheetProps {
 }
 
 const AlertDetailSheet = memo(({ alert, isOpen, onClose }: AlertDetailSheetProps) => {
+  const navigate = useNavigate();
+  
   if (!alert) return null;
 
   const isRed = alert.severity === 'red';
@@ -159,20 +161,39 @@ const AlertDetailSheet = memo(({ alert, isOpen, onClose }: AlertDetailSheetProps
 
           <Separator />
 
-          {/* Action Link */}
+          {/* Action Links */}
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <LinkIcon className="h-4 w-4 text-primary" />
-              <h3 className="font-semibold text-sm text-foreground">Related System</h3>
+              <h3 className="font-semibold text-sm text-foreground">Actions</h3>
             </div>
-            <Button
-              variant="outline"
-              className="w-full justify-between"
-              onClick={() => console.log('Navigate to:', alert.actionUrl)}
-            >
-              <span className="text-sm">Open in operational dashboard</span>
-              <ArrowRight className="h-4 w-4" />
-            </Button>
+            <div className="space-y-2">
+              <Button
+                variant="outline"
+                className="w-full justify-between hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-colors"
+                onClick={() => {
+                  onClose();
+                  navigate('/services');
+                }}
+              >
+                <span className="text-sm">Open in operational dashboard</span>
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full justify-between hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-colors"
+                onClick={() => {
+                  onClose();
+                  navigate('/scenarios/exercises');
+                }}
+              >
+                <span className="text-sm flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  Schedule Next Test
+                </span>
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
 
           {/* Last Updated */}
