@@ -420,7 +420,8 @@ const CapitalDetailPanel = ({ capital, isOpen, onClose }: CapitalDetailPanelProp
                     <Button
                       variant="outline"
                       size="sm"
-                      className="gap-2 text-[hsl(var(--nhs-blue))] border-[hsl(var(--nhs-blue))]/30 hover:bg-[hsl(var(--nhs-blue))]/5"
+                      className="gap-2 text-primary border-primary/30 hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-colors"
+                      onClick={() => window.location.href = `/services`}
                     >
                       <FileText className="h-4 w-4" />
                       View detailed resilience model
@@ -429,7 +430,8 @@ const CapitalDetailPanel = ({ capital, isOpen, onClose }: CapitalDetailPanelProp
                     <Button
                       variant="outline"
                       size="sm"
-                      className="gap-2 text-[hsl(var(--nhs-blue))] border-[hsl(var(--nhs-blue))]/30 hover:bg-[hsl(var(--nhs-blue))]/5"
+                      className="gap-2 text-primary border-primary/30 hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-colors"
+                      onClick={() => window.location.href = `/scenarios/exercises`}
                     >
                       <FlaskConical className="h-4 w-4" />
                       Scenario test: {details?.relevantScenario.split(' ').slice(0, 2).join(' ')}...
@@ -438,7 +440,9 @@ const CapitalDetailPanel = ({ capital, isOpen, onClose }: CapitalDetailPanelProp
                     <Button
                       variant="outline"
                       size="sm"
-                      className="gap-2 text-[hsl(var(--nhs-blue))] border-[hsl(var(--nhs-blue))]/30 hover:bg-[hsl(var(--nhs-blue))]/5"
+                      className="gap-2 opacity-50 cursor-not-allowed"
+                      disabled
+                      title="Feature coming soon"
                     >
                       <Wallet className="h-4 w-4" />
                       Review enhancement investments

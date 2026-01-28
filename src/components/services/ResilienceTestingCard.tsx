@@ -1,4 +1,5 @@
 import { format, formatDistanceToNow, differenceInDays } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,7 @@ interface ResilienceTestingCardProps {
 }
 
 const ResilienceTestingCard = ({ service }: ResilienceTestingCardProps) => {
+  const navigate = useNavigate();
   const { lastTest, nextTest } = service.resilienceTesting;
   const daysUntilNextTest = differenceInDays(nextTest.date, new Date());
 
@@ -144,7 +146,11 @@ const ResilienceTestingCard = ({ service }: ResilienceTestingCardProps) => {
                 <p className="mt-1 text-sm">{nextTest.scenario}</p>
               </div>
 
-              <Button size="sm" className="w-full sm:w-auto mt-2">
+              <Button 
+                size="sm" 
+                className="w-full sm:w-auto mt-2 hover:bg-primary/90 transition-colors"
+                onClick={() => navigate('/scenarios/exercises')}
+              >
                 <Calendar className="h-4 w-4 mr-2" />
                 Schedule New Test
               </Button>
