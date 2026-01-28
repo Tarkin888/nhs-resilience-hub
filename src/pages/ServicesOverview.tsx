@@ -183,11 +183,11 @@ const ServicesOverview = () => {
               </TableHeader>
               <TableBody>
                 {filteredServices.map((service) => (
-                  <TableRow key={service.id} className="group">
+                  <TableRow key={service.id} className="group hover:bg-muted/50 cursor-pointer">
                     <TableCell>
                       <Link 
                         to={`/services/${service.id}`}
-                        className="font-medium text-foreground hover:text-primary transition-colors hover:underline"
+                        className="font-medium text-foreground hover:text-primary transition-colors hover:underline block"
                       >
                         {service.name}
                       </Link>
