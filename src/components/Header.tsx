@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { HelpCircle, ClipboardList } from 'lucide-react';
+import { HelpCircle, ClipboardList, FlaskConical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import MethodologyPanel from './MethodologyPanel';
@@ -14,6 +14,7 @@ const Header = ({ isMethodologyOpen, onMethodologyOpenChange }: HeaderProps) => 
   const location = useLocation();
   
   const isServicesActive = location.pathname.startsWith('/services');
+  const isScenariosActive = location.pathname.startsWith('/scenarios');
 
   return (
     <>
@@ -56,6 +57,19 @@ const Header = ({ isMethodologyOpen, onMethodologyOpenChange }: HeaderProps) => 
                   <ClipboardList className="h-4 w-4" />
                   <span className="hidden sm:inline">Essential Services</span>
                   <span className="sm:hidden">Services</span>
+                </Link>
+                <Link
+                  to="/scenarios/exercises"
+                  className={cn(
+                    "px-3 py-1.5 text-sm font-medium rounded-md transition-colors flex items-center gap-1.5",
+                    isScenariosActive
+                      ? "bg-primary/10 text-primary" 
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  )}
+                >
+                  <FlaskConical className="h-4 w-4" />
+                  <span className="hidden sm:inline">Scenario Testing</span>
+                  <span className="sm:hidden">Scenarios</span>
                 </Link>
               </nav>
             </div>
