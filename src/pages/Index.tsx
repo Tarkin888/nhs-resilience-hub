@@ -8,7 +8,6 @@ import LiveRiskAlerts from '@/components/LiveRiskAlerts';
 import EssentialServicesPanel from '@/components/EssentialServicesPanel';
 import { ScenarioImpactVisualiser } from '@/components/ScenarioImpactVisualiser';
 import CapitalCard from '@/components/CapitalCard';
-import OverallScore from '@/components/OverallScore';
 import DataSourcesModal from '@/components/DataSourcesModal';
 import { Skeleton } from '@/components/ui/skeleton';
 import { capitals, alerts, essentialServices } from '@/lib/data';
@@ -19,7 +18,6 @@ const MemoizedLiveRiskAlerts = memo(LiveRiskAlerts);
 const MemoizedEssentialServicesPanel = memo(EssentialServicesPanel);
 const MemoizedScenarioImpactVisualiser = memo(ScenarioImpactVisualiser);
 const MemoizedCapitalCard = memo(CapitalCard);
-const MemoizedOverallScore = memo(OverallScore);
 
 // Loading skeleton for sections
 const SectionSkeleton = () => (
@@ -82,11 +80,6 @@ const Index = () => {
               <MemoizedCapitalCard key={capital.id} capital={capital} index={index} />
             ))}
           </div>
-        </section>
-
-        {/* Overall Resilience Summary */}
-        <section className="mt-8">
-          <MemoizedOverallScore capitals={capitals} />
         </section>
       </main>
 
