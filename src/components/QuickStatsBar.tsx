@@ -34,7 +34,7 @@ const stats: StatCard[] = [
   {
     icon: Calendar,
     label: 'Next resilience test',
-    value: '15 Dec 2025',
+    value: '15 Mar 2026 (Cyber-attack desktop exercise)',
   },
 ];
 
