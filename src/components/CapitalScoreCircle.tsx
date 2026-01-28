@@ -167,6 +167,13 @@ const CapitalScoreCircle = memo(({ capital, index, onClick, dataTourId }: Capita
             </div>
           </div>
 
+          {/* DEMO badge in top-right */}
+          <div className="absolute -top-1 -right-8 md:-right-10">
+            <span className="text-[8px] md:text-[9px] font-bold tracking-wider bg-demo text-primary px-1.5 py-0.5 rounded border border-primary/30">
+              DEMO
+            </span>
+          </div>
+
           {/* Trend arrow on hover */}
           {isHovered && (
             <motion.div
