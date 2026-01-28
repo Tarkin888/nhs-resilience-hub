@@ -99,9 +99,9 @@ const ServiceCard = memo(({ service, index, formatTimestamp, onViewDetails }: {
             e.stopPropagation();
             handleClick();
           }}
-          aria-label={`View details for ${service.name}`}
+          aria-label={`View status details for ${service.name}`}
         >
-          View Details
+          View Status
           <ChevronRight className="h-3 w-3" aria-hidden="true" />
         </button>
       </div>

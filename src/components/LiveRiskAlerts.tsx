@@ -81,9 +81,9 @@ const AlertCard = memo(({ alert, index, formatTimestamp, onViewDetails }: {
           e.stopPropagation();
           handleClick();
         }}
-        aria-label={`View details for ${alert.title}`}
+        aria-label={`View alert details: ${alert.title}`}
       >
-        <span className="hidden sm:inline">View Details</span>
+        <span className="hidden sm:inline">View Alert</span>
         <span className="sm:hidden">View</span>
         <ChevronRight className="h-3 w-3 ml-1" aria-hidden="true" />
       </Button>
