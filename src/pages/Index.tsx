@@ -58,7 +58,10 @@ const Index = () => {
       <main className="max-w-[1400px] mx-auto px-4 md:px-8 py-8">
         {/* Five Capitals Display - 32px margin top, 48px margin bottom */}
         <section className="mt-0 mb-12">
-          <MemoizedFiveCapitalsDisplay capitals={capitals} />
+          <MemoizedFiveCapitalsDisplay 
+            capitals={capitals} 
+            onOpenMethodology={() => setIsMethodologyOpen(true)} 
+          />
         </section>
 
         {/* Live Risk Alerts + Essential Services - Side-by-side, 24px gap */}
