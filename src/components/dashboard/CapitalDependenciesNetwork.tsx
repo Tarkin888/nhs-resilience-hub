@@ -1,8 +1,11 @@
 import { memo, useMemo, useState, useCallback } from 'react';
 import { Coins, Building2, Users, Award, Leaf, LucideIcon } from 'lucide-react';
 import { capitalNodes, dependencies, CapitalNode, CapitalDependency } from '@/lib/capitalDependenciesData';
+import { Capital } from '@/types';
 import CapitalNodeTooltip from './CapitalNodeTooltip';
 import ConnectionLineTooltip from './ConnectionLineTooltip';
+import DependencyDetailModal from './DependencyDetailModal';
+import CapitalDetailPanel from '@/components/CapitalDetailPanel';
 
 const getStrokeWidth = (strength: 'high' | 'medium' | 'low'): number => {
   switch (strength) {
@@ -31,6 +34,10 @@ const iconMap: Record<string, LucideIcon> = {
 const CapitalDependenciesNetwork = memo(() => {
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [hoveredLineId, setHoveredLineId] = useState<string | null>(null);
+  const [selectedCapital, setSelectedCapital] = useState<Capital | null>(null);
+  const [selectedDependency, setSelectedDependency] = useState<CapitalDependency | null>(null);
+  const [isCapitalPanelOpen, setIsCapitalPanelOpen] = useState(false);
+  const [isDependencyModalOpen, setIsDependencyModalOpen] = useState(false);
 
   const nodeMap = useMemo(() => {
     const map = new Map<string, CapitalNode>();
@@ -112,6 +119,45 @@ const CapitalDependenciesNetwork = memo(() => {
     setHoveredNodeId(null);
   }, []);
 
+  // Convert CapitalNode to Capital type for the panel
+  const convertToCapital = useCallback((node: CapitalNode): Capital => {
+    return {
+      id: node.id,
+      name: node.name,
+      score: node.score,
+      status: node.status,
+      trend: node.trend,
+      kris: [], // KRIs are loaded from capitalDetails in the panel
+    };
+  }, []);
+
+  const handleNodeClick = useCallback((node: CapitalNode) => {
+    setSelectedCapital(convertToCapital(node));
+    setIsCapitalPanelOpen(true);
+  }, [convertToCapital]);
+
+  const handleCloseCapitalPanel = useCallback(() => {
+    setIsCapitalPanelOpen(false);
+    // Delay clearing selected capital for exit animation
+    setTimeout(() => setSelectedCapital(null), 300);
+  }, []);
+
+  const handleLineClick = useCallback((lineId: string) => {
+    const [sourceId, targetId] = lineId.split('-');
+    const dep = dependencies.find(
+      d => d.sourceCapital === sourceId && d.targetCapital === targetId
+    );
+    if (dep) {
+      setSelectedDependency(dep);
+      setIsDependencyModalOpen(true);
+    }
+  }, []);
+
+  const handleCloseDependencyModal = useCallback(() => {
+    setIsDependencyModalOpen(false);
+    setTimeout(() => setSelectedDependency(null), 300);
+  }, []);
+
   return (
     <section className="mt-8">
       <div className="flex items-center justify-between mb-4">
@@ -168,6 +214,7 @@ const CapitalDependenciesNetwork = memo(() => {
               strokeLinejoin="round"
               onMouseEnter={() => handleLineMouseEnter(line.key)}
               onMouseLeave={handleLineMouseLeave}
+              onClick={() => handleLineClick(line.key)}
               style={{
                 cursor: 'pointer',
                 transition: 'stroke-width 200ms ease, stroke-opacity 200ms ease, stroke 200ms ease',
@@ -188,6 +235,7 @@ const CapitalDependenciesNetwork = memo(() => {
                 transform={`translate(${node.x}, ${node.y})`}
                 onMouseEnter={() => handleMouseEnter(node.id)}
                 onMouseLeave={handleMouseLeave}
+                onClick={() => handleNodeClick(node)}
                 style={{ cursor: 'pointer' }}
               >
                 {/* Glow circle - shown when hovered */}
@@ -310,6 +358,20 @@ const CapitalDependenciesNetwork = memo(() => {
           })()}
         </svg>
       </div>
+
+      {/* Capital Detail Panel */}
+      <CapitalDetailPanel 
+        capital={selectedCapital}
+        isOpen={isCapitalPanelOpen}
+        onClose={handleCloseCapitalPanel}
+      />
+
+      {/* Dependency Detail Modal */}
+      <DependencyDetailModal
+        dependency={selectedDependency}
+        isOpen={isDependencyModalOpen}
+        onClose={handleCloseDependencyModal}
+      />
     </section>
   );
 });
