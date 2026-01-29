@@ -11,6 +11,7 @@ import CapitalCard from '@/components/CapitalCard';
 import DataSourcesModal from '@/components/DataSourcesModal';
 import StatusLegend from '@/components/StatusLegend';
 import AIRiskPredictionSection from '@/components/AIRiskPredictionSection';
+import CapitalDependenciesNetwork from '@/components/dashboard/CapitalDependenciesNetwork';
 import { Skeleton } from '@/components/ui/skeleton';
 import { capitals, alerts, essentialServices } from '@/lib/data';
 
@@ -21,6 +22,7 @@ const MemoizedEssentialServicesPanel = memo(EssentialServicesPanel);
 const MemoizedScenarioImpactVisualiser = memo(ScenarioImpactVisualiser);
 const MemoizedCapitalCard = memo(CapitalCard);
 const MemoizedAIRiskPredictionSection = memo(AIRiskPredictionSection);
+const MemoizedCapitalDependenciesNetwork = memo(CapitalDependenciesNetwork);
 
 // Loading skeleton for sections
 const SectionSkeleton = () => (
@@ -75,6 +77,9 @@ const Index = () => {
           <MemoizedLiveRiskAlerts alerts={alerts} />
           <MemoizedEssentialServicesPanel services={essentialServices} />
         </section>
+
+        {/* Capital Dependencies Network - Between Essential Services and Scenario sections */}
+        <MemoizedCapitalDependenciesNetwork />
 
         {/* Scenario Impact Visualiser - 32px margin top, full width */}
         <section className="mt-8">
