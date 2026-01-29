@@ -131,7 +131,8 @@ const AIPredictionCard = memo(({ prediction, index }: AIPredictionCardProps) => 
   }, [prediction.probability, index]);
 
   const handleCreateActionPlan = () => {
-    console.log(`Creating action plan for: ${prediction.title}`);
+    console.log(`Create Action Plan clicked for: ${prediction.title}`);
+    // Future: Open action plan modal or navigate to action planning page
   };
 
   return (
