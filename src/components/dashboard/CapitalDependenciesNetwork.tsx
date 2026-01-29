@@ -1,7 +1,8 @@
 import { memo, useMemo, useState, useCallback } from 'react';
 import { Coins, Building2, Users, Award, Leaf, LucideIcon } from 'lucide-react';
-import { capitalNodes, dependencies, CapitalNode } from '@/lib/capitalDependenciesData';
+import { capitalNodes, dependencies, CapitalNode, CapitalDependency } from '@/lib/capitalDependenciesData';
 import CapitalNodeTooltip from './CapitalNodeTooltip';
+import ConnectionLineTooltip from './ConnectionLineTooltip';
 
 const getStrokeWidth = (strength: 'high' | 'medium' | 'low'): number => {
   switch (strength) {
@@ -276,7 +277,7 @@ const CapitalDependenciesNetwork = memo(() => {
             );
           })}
 
-          {/* Tooltip - rendered last to appear on top */}
+          {/* Node Tooltip - rendered last to appear on top */}
           {hoveredNodeId && nodeMap.get(hoveredNodeId) && (
             <CapitalNodeTooltip 
               node={nodeMap.get(hoveredNodeId)!}
@@ -284,6 +285,29 @@ const CapitalDependenciesNetwork = memo(() => {
               y={nodeMap.get(hoveredNodeId)!.y}
             />
           )}
+
+          {/* Connection Line Tooltip */}
+          {hoveredLineId && (() => {
+            const [sourceId, targetId] = hoveredLineId.split('-');
+            const dep = dependencies.find(
+              d => d.sourceCapital === sourceId && d.targetCapital === targetId
+            );
+            const source = nodeMap.get(sourceId);
+            const target = nodeMap.get(targetId);
+            
+            if (!dep || !source || !target) return null;
+            
+            const midX = (source.x + target.x) / 2;
+            const midY = (source.y + target.y) / 2;
+            
+            return (
+              <ConnectionLineTooltip 
+                dependency={dep}
+                x={midX}
+                y={midY}
+              />
+            );
+          })()}
         </svg>
       </div>
     </section>
