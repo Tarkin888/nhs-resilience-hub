@@ -28,6 +28,7 @@ const iconMap: Record<string, LucideIcon> = {
 
 const CapitalDependenciesNetwork = memo(() => {
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
+  const [hoveredLineId, setHoveredLineId] = useState<string | null>(null);
 
   const nodeMap = useMemo(() => {
     const map = new Map<string, CapitalNode>();
@@ -61,21 +62,45 @@ const CapitalDependenciesNetwork = memo(() => {
       
       if (!source || !target) return null;
 
+      const lineId = `${dep.sourceCapital}-${dep.targetCapital}`;
       const isConnectedToHovered = hoveredNodeId && 
         (dep.sourceCapital === hoveredNodeId || dep.targetCapital === hoveredNodeId);
+      const isLineHovered = hoveredLineId === lineId;
+      
+      // Calculate stroke width with hover effects
+      let strokeWidth = getStrokeWidth(dep.strength);
+      if (isConnectedToHovered || isLineHovered) {
+        strokeWidth += 1;
+      }
+      
+      // Calculate stroke color - darker when line itself is hovered
+      const strokeColor = isLineHovered ? '#2563EB' : '#3B82F6';
+      
+      // Calculate opacity
+      const strokeOpacity = isConnectedToHovered || isLineHovered ? 1.0 : 0.6;
       
       return {
-        key: `${dep.sourceCapital}-${dep.targetCapital}`,
+        key: lineId,
         x1: source.x,
         y1: source.y,
         x2: target.x,
         y2: target.y,
-        strokeWidth: getStrokeWidth(dep.strength) + (isConnectedToHovered ? 1 : 0),
+        strokeWidth,
+        strokeColor,
+        strokeOpacity,
         strength: dep.strength,
-        isHighlighted: isConnectedToHovered,
+        isHighlighted: isConnectedToHovered || isLineHovered,
       };
     }).filter(Boolean);
-  }, [nodeMap, hoveredNodeId]);
+  }, [nodeMap, hoveredNodeId, hoveredLineId]);
+
+  const handleLineMouseEnter = useCallback((lineId: string) => {
+    setHoveredLineId(lineId);
+  }, []);
+
+  const handleLineMouseLeave = useCallback(() => {
+    setHoveredLineId(null);
+  }, []);
 
   const handleMouseEnter = useCallback((nodeId: string) => {
     setHoveredNodeId(nodeId);
@@ -134,13 +159,16 @@ const CapitalDependenciesNetwork = memo(() => {
               y1={line.y1}
               x2={line.x2}
               y2={line.y2}
-              stroke="#3B82F6"
+              stroke={line.strokeColor}
               strokeWidth={line.strokeWidth}
-              strokeOpacity={line.isHighlighted ? 1.0 : 0.6}
+              strokeOpacity={line.strokeOpacity}
               strokeLinecap="round"
               strokeLinejoin="round"
+              onMouseEnter={() => handleLineMouseEnter(line.key)}
+              onMouseLeave={handleLineMouseLeave}
               style={{
-                transition: 'stroke-width 200ms ease, stroke-opacity 200ms ease',
+                cursor: 'pointer',
+                transition: 'stroke-width 200ms ease, stroke-opacity 200ms ease, stroke 200ms ease',
               }}
             />
           ))}
