@@ -1,6 +1,7 @@
 import { memo, useMemo, useState, useCallback } from 'react';
 import { Coins, Building2, Users, Award, Leaf, LucideIcon } from 'lucide-react';
 import { capitalNodes, dependencies, CapitalNode } from '@/lib/capitalDependenciesData';
+import CapitalNodeTooltip from './CapitalNodeTooltip';
 
 const getStrokeWidth = (strength: 'high' | 'medium' | 'low'): number => {
   switch (strength) {
@@ -274,6 +275,15 @@ const CapitalDependenciesNetwork = memo(() => {
               </g>
             );
           })}
+
+          {/* Tooltip - rendered last to appear on top */}
+          {hoveredNodeId && nodeMap.get(hoveredNodeId) && (
+            <CapitalNodeTooltip 
+              node={nodeMap.get(hoveredNodeId)!}
+              x={nodeMap.get(hoveredNodeId)!.x}
+              y={nodeMap.get(hoveredNodeId)!.y}
+            />
+          )}
         </svg>
       </div>
     </section>

@@ -3,6 +3,7 @@ export interface CapitalNode {
   name: 'Financial' | 'Operational' | 'Human' | 'Reputational' | 'Environmental';
   score: number;
   status: 'red' | 'amber' | 'green';
+  trend: 'improving' | 'declining' | 'stable';
   icon: string;
   x: number;
   y: number;
@@ -22,6 +23,7 @@ export const capitalNodes: CapitalNode[] = [
     name: 'Financial',
     score: 68,
     status: 'amber',
+    trend: 'stable',
     icon: 'Coins',
     x: 200,
     y: 150,
@@ -31,6 +33,7 @@ export const capitalNodes: CapitalNode[] = [
     name: 'Operational',
     score: 72,
     status: 'green',
+    trend: 'improving',
     icon: 'Building2',
     x: 400,
     y: 250,
@@ -40,6 +43,7 @@ export const capitalNodes: CapitalNode[] = [
     name: 'Human',
     score: 54,
     status: 'red',
+    trend: 'declining',
     icon: 'Users',
     x: 100,
     y: 250,
@@ -49,6 +53,7 @@ export const capitalNodes: CapitalNode[] = [
     name: 'Reputational',
     score: 81,
     status: 'green',
+    trend: 'improving',
     icon: 'Award',
     x: 300,
     y: 350,
@@ -58,6 +63,7 @@ export const capitalNodes: CapitalNode[] = [
     name: 'Environmental',
     score: 45,
     status: 'red',
+    trend: 'declining',
     icon: 'Leaf',
     x: 250,
     y: 50,
