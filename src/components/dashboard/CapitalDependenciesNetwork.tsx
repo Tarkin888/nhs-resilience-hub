@@ -1,11 +1,14 @@
-import { memo, useMemo, useState, useCallback } from 'react';
-import { Coins, Building2, Users, Award, Leaf, LucideIcon } from 'lucide-react';
+import { memo, useMemo, useState, useCallback, useRef, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { Coins, Building2, Users, Award, Leaf, LucideIcon, HelpCircle, Monitor } from 'lucide-react';
 import { capitalNodes, dependencies, CapitalNode, CapitalDependency } from '@/lib/capitalDependenciesData';
 import { Capital } from '@/types';
 import CapitalNodeTooltip from './CapitalNodeTooltip';
 import ConnectionLineTooltip from './ConnectionLineTooltip';
 import DependencyDetailModal from './DependencyDetailModal';
+import NetworkHelpModal from './NetworkHelpModal';
 import CapitalDetailPanel from '@/components/CapitalDetailPanel';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const getStrokeWidth = (strength: 'high' | 'medium' | 'low'): number => {
   switch (strength) {
@@ -20,6 +23,14 @@ const getStatusColor = (status: 'red' | 'amber' | 'green'): string => {
     case 'red': return '#DC2626';
     case 'amber': return '#F59E0B';
     case 'green': return '#10B981';
+  }
+};
+
+const getStatusLabel = (status: 'red' | 'amber' | 'green'): string => {
+  switch (status) {
+    case 'red': return 'Vulnerable';
+    case 'amber': return 'Adequate';
+    case 'green': return 'Resilient';
   }
 };
 
@@ -38,6 +49,10 @@ const CapitalDependenciesNetwork = memo(() => {
   const [selectedDependency, setSelectedDependency] = useState<CapitalDependency | null>(null);
   const [isCapitalPanelOpen, setIsCapitalPanelOpen] = useState(false);
   const [isDependencyModalOpen, setIsDependencyModalOpen] = useState(false);
+  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
+  const [focusedNodeIndex, setFocusedNodeIndex] = useState<number>(-1);
+  const isMobile = useIsMobile();
+  const nodeRefs = useRef<(SVGGElement | null)[]>([]);
 
   const nodeMap = useMemo(() => {
     const map = new Map<string, CapitalNode>();
@@ -158,20 +173,59 @@ const CapitalDependenciesNetwork = memo(() => {
     setTimeout(() => setSelectedDependency(null), 300);
   }, []);
 
+  // Keyboard navigation handler
+  const handleKeyDown = useCallback((e: React.KeyboardEvent, node: CapitalNode, index: number) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleNodeClick(node);
+    } else if (e.key === 'Tab') {
+      setFocusedNodeIndex(e.shiftKey ? index - 1 : index + 1);
+    }
+  }, [handleNodeClick]);
+
+  // Mobile message
+  if (isMobile) {
+    return (
+      <section className="mt-8 mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-foreground">
+            Capital Dependencies Network
+          </h2>
+        </div>
+        <div className="min-h-[200px] rounded-lg shadow-card bg-[#F8F9FA] p-6 flex flex-col items-center justify-center gap-4">
+          <Monitor className="h-12 w-12 text-muted-foreground" />
+          <p className="text-muted-foreground text-center">
+            View on a larger screen to explore the interactive dependencies network
+          </p>
+        </div>
+      </section>
+    );
+  }
+
   return (
-    <section className="mt-8">
+    <motion.section 
+      className="mt-8 mb-8"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold text-foreground">
           Capital Dependencies Network
         </h2>
-        <span className="text-sm font-medium text-primary">
+        <button
+          onClick={() => setIsHelpModalOpen(true)}
+          className="flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded px-2 py-1"
+          aria-label="Learn how to use the interactive graph"
+        >
+          <HelpCircle className="h-4 w-4" />
           Interactive Graph
-        </span>
+        </button>
       </div>
       
       <div 
-        className="min-h-[500px] rounded-lg shadow-card bg-[#F8F9FA] p-6 flex items-center justify-center"
-        role="img"
+        className="min-h-[500px] rounded-lg shadow-card bg-[#F8F9FA] p-6 flex items-center justify-center lg:scale-100 md:scale-90 transition-transform"
+        role="group"
         aria-label="Capital dependencies network graph showing relationships between the five capitals"
       >
         <svg 
@@ -179,6 +233,7 @@ const CapitalDependenciesNetwork = memo(() => {
           height={400} 
           viewBox="0 0 500 400"
           className="overflow-visible"
+          role="img"
         >
           {/* Drop shadow filter definition */}
           <defs>
@@ -200,8 +255,8 @@ const CapitalDependenciesNetwork = memo(() => {
           </defs>
 
           {/* Connection lines - rendered first to appear behind nodes */}
-          {connectionLines.map(line => line && (
-            <line
+          {connectionLines.map((line, index) => line && (
+            <motion.line
               key={line.key}
               x1={line.x1}
               y1={line.y1}
@@ -215,29 +270,57 @@ const CapitalDependenciesNetwork = memo(() => {
               onMouseEnter={() => handleLineMouseEnter(line.key)}
               onMouseLeave={handleLineMouseLeave}
               onClick={() => handleLineClick(line.key)}
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: line.strokeOpacity }}
+              transition={{ duration: 0.3, delay: 0.2 + index * 0.05 }}
               style={{
                 cursor: 'pointer',
-                transition: 'stroke-width 200ms ease, stroke-opacity 200ms ease, stroke 200ms ease',
+                transition: 'stroke-width 200ms ease, stroke 200ms ease',
               }}
+              role="button"
+              tabIndex={0}
+              aria-label={`Dependency from ${line.key.split('-')[0]} to ${line.key.split('-')[1]}`}
             />
           ))}
 
           {/* Capital nodes - rendered after lines to appear on top */}
-          {capitalNodes.map(node => {
+          {capitalNodes.map((node, index) => {
             const Icon = iconMap[node.icon];
             const isHovered = hoveredNodeId === node.id;
             const isConnected = connectedNodeIds.has(node.id);
             const statusColor = getStatusColor(node.status);
+            const isFocused = focusedNodeIndex === index;
             
             return (
-              <g 
+              <motion.g 
                 key={node.id}
+                ref={(el) => { nodeRefs.current[index] = el; }}
                 transform={`translate(${node.x}, ${node.y})`}
                 onMouseEnter={() => handleMouseEnter(node.id)}
                 onMouseLeave={handleMouseLeave}
                 onClick={() => handleNodeClick(node)}
+                onKeyDown={(e) => handleKeyDown(e, node, index)}
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.4, delay: 0.3 + index * 0.1 }}
                 style={{ cursor: 'pointer' }}
+                tabIndex={0}
+                role="button"
+                aria-label={`${node.name} Capital - Score ${node.score}/100 - ${getStatusLabel(node.status)}`}
               >
+                {/* Focus ring for keyboard navigation */}
+                {isFocused && (
+                  <circle
+                    cx={0}
+                    cy={0}
+                    r={52}
+                    fill="none"
+                    stroke="#3B82F6"
+                    strokeWidth={3}
+                    strokeDasharray="4 2"
+                  />
+                )}
+                
                 {/* Glow circle - shown when hovered */}
                 {isHovered && (
                   <circle
@@ -321,7 +404,7 @@ const CapitalDependenciesNetwork = memo(() => {
                 >
                   {node.score}/100
                 </text>
-              </g>
+              </motion.g>
             );
           })}
 
@@ -372,7 +455,13 @@ const CapitalDependenciesNetwork = memo(() => {
         isOpen={isDependencyModalOpen}
         onClose={handleCloseDependencyModal}
       />
-    </section>
+
+      {/* Help Modal */}
+      <NetworkHelpModal
+        isOpen={isHelpModalOpen}
+        onClose={() => setIsHelpModalOpen(false)}
+      />
+    </motion.section>
   );
 });
 
