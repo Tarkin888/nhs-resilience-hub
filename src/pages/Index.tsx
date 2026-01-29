@@ -10,6 +10,7 @@ import { ScenarioImpactVisualiser } from '@/components/ScenarioImpactVisualiser'
 import CapitalCard from '@/components/CapitalCard';
 import DataSourcesModal from '@/components/DataSourcesModal';
 import StatusLegend from '@/components/StatusLegend';
+import AIRiskPredictionSection from '@/components/AIRiskPredictionSection';
 import { Skeleton } from '@/components/ui/skeleton';
 import { capitals, alerts, essentialServices } from '@/lib/data';
 
@@ -19,6 +20,7 @@ const MemoizedLiveRiskAlerts = memo(LiveRiskAlerts);
 const MemoizedEssentialServicesPanel = memo(EssentialServicesPanel);
 const MemoizedScenarioImpactVisualiser = memo(ScenarioImpactVisualiser);
 const MemoizedCapitalCard = memo(CapitalCard);
+const MemoizedAIRiskPredictionSection = memo(AIRiskPredictionSection);
 
 // Loading skeleton for sections
 const SectionSkeleton = () => (
@@ -88,6 +90,9 @@ const Index = () => {
             ))}
           </div>
         </section>
+
+        {/* AI Risk Prediction Section */}
+        <MemoizedAIRiskPredictionSection />
       </main>
 
       {/* Footer */}
