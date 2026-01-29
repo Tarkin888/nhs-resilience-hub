@@ -1,4 +1,5 @@
 import { memo, useMemo } from 'react';
+import { Coins, Building2, Users, Award, Leaf, LucideIcon } from 'lucide-react';
 import { capitalNodes, dependencies, CapitalNode } from '@/lib/capitalDependenciesData';
 
 const getStrokeWidth = (strength: 'high' | 'medium' | 'low'): number => {
@@ -15,6 +16,14 @@ const getStatusColor = (status: 'red' | 'amber' | 'green'): string => {
     case 'amber': return '#F59E0B';
     case 'green': return '#10B981';
   }
+};
+
+const iconMap: Record<string, LucideIcon> = {
+  Coins,
+  Building2,
+  Users,
+  Award,
+  Leaf,
 };
 
 const CapitalDependenciesNetwork = memo(() => {
@@ -94,23 +103,77 @@ const CapitalDependenciesNetwork = memo(() => {
           ))}
 
           {/* Capital nodes - rendered after lines to appear on top */}
-          {capitalNodes.map(node => (
-            <g 
-              key={node.id}
-              transform={`translate(${node.x}, ${node.y})`}
-            >
-              <circle
-                cx={0}
-                cy={0}
-                r={45}
-                fill={getStatusColor(node.status)}
-                stroke="white"
-                strokeWidth={3}
-                strokeLinejoin="round"
-                filter="url(#dropShadow)"
-              />
-            </g>
-          ))}
+          {capitalNodes.map(node => {
+            const Icon = iconMap[node.icon];
+            
+            return (
+              <g 
+                key={node.id}
+                transform={`translate(${node.x}, ${node.y})`}
+              >
+                {/* Circle background */}
+                <circle
+                  cx={0}
+                  cy={0}
+                  r={45}
+                  fill={getStatusColor(node.status)}
+                  stroke="white"
+                  strokeWidth={3}
+                  strokeLinejoin="round"
+                  filter="url(#dropShadow)"
+                />
+                
+                {/* Icon - centered in circle using foreignObject */}
+                <foreignObject 
+                  x={-14} 
+                  y={-16} 
+                  width={28} 
+                  height={28}
+                >
+                  <div className="flex items-center justify-center w-full h-full">
+                    {Icon && (
+                      <Icon 
+                        size={28} 
+                        color="#FFFFFF" 
+                        strokeWidth={2}
+                        aria-hidden="true"
+                      />
+                    )}
+                  </div>
+                </foreignObject>
+                
+                {/* Capital name label */}
+                <text
+                  x={0}
+                  y={60}
+                  textAnchor="middle"
+                  fill="#1F2937"
+                  style={{
+                    fontFamily: 'Inter, system-ui, sans-serif',
+                    fontWeight: 600,
+                    fontSize: '14px',
+                  }}
+                >
+                  {node.name}
+                </text>
+                
+                {/* Score label */}
+                <text
+                  x={0}
+                  y={78}
+                  textAnchor="middle"
+                  fill="#6B7280"
+                  style={{
+                    fontFamily: 'Inter, system-ui, sans-serif',
+                    fontWeight: 500,
+                    fontSize: '12px',
+                  }}
+                >
+                  {node.score}/100
+                </text>
+              </g>
+            );
+          })}
         </svg>
       </div>
     </section>
