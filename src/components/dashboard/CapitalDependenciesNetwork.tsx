@@ -9,6 +9,14 @@ const getStrokeWidth = (strength: 'high' | 'medium' | 'low'): number => {
   }
 };
 
+const getStatusColor = (status: 'red' | 'amber' | 'green'): string => {
+  switch (status) {
+    case 'red': return '#DC2626';
+    case 'amber': return '#F59E0B';
+    case 'green': return '#10B981';
+  }
+};
+
 const CapitalDependenciesNetwork = memo(() => {
   const nodeMap = useMemo(() => {
     const map = new Map<string, CapitalNode>();
@@ -57,6 +65,18 @@ const CapitalDependenciesNetwork = memo(() => {
           viewBox="0 0 500 400"
           className="overflow-visible"
         >
+          {/* Drop shadow filter definition */}
+          <defs>
+            <filter id="dropShadow" x="-50%" y="-50%" width="200%" height="200%">
+              <feDropShadow 
+                dx="2" 
+                dy="2" 
+                stdDeviation="4" 
+                floodOpacity="0.2"
+              />
+            </filter>
+          </defs>
+
           {/* Connection lines - rendered first to appear behind nodes */}
           {connectionLines.map(line => line && (
             <line
@@ -71,6 +91,25 @@ const CapitalDependenciesNetwork = memo(() => {
               strokeLinecap="round"
               strokeLinejoin="round"
             />
+          ))}
+
+          {/* Capital nodes - rendered after lines to appear on top */}
+          {capitalNodes.map(node => (
+            <g 
+              key={node.id}
+              transform={`translate(${node.x}, ${node.y})`}
+            >
+              <circle
+                cx={0}
+                cy={0}
+                r={45}
+                fill={getStatusColor(node.status)}
+                stroke="white"
+                strokeWidth={3}
+                strokeLinejoin="round"
+                filter="url(#dropShadow)"
+              />
+            </g>
           ))}
         </svg>
       </div>
