@@ -7,6 +7,7 @@ import FiveCapitalsDisplay from '@/components/FiveCapitalsDisplay';
 import LiveRiskAlerts from '@/components/LiveRiskAlerts';
 import EssentialServicesPanel from '@/components/EssentialServicesPanel';
 import { ScenarioImpactVisualiser } from '@/components/ScenarioImpactVisualiser';
+import { ScenarioLibrary } from '@/components/scenarios/ScenarioLibrary';
 import CapitalCard from '@/components/CapitalCard';
 import DataSourcesModal from '@/components/DataSourcesModal';
 import StatusLegend from '@/components/StatusLegend';
@@ -20,6 +21,7 @@ const MemoizedFiveCapitalsDisplay = memo(FiveCapitalsDisplay);
 const MemoizedLiveRiskAlerts = memo(LiveRiskAlerts);
 const MemoizedEssentialServicesPanel = memo(EssentialServicesPanel);
 const MemoizedScenarioImpactVisualiser = memo(ScenarioImpactVisualiser);
+const MemoizedScenarioLibrary = memo(ScenarioLibrary);
 const MemoizedCapitalCard = memo(CapitalCard);
 const MemoizedAIRiskPredictionSection = memo(AIRiskPredictionSection);
 // const MemoizedCapitalDependenciesNetwork = memo(CapitalDependenciesNetwork);
@@ -80,6 +82,11 @@ const Index = () => {
 
         {/* Capital Dependencies Network - Hidden for now */}
         {/* <MemoizedCapitalDependenciesNetwork /> */}
+
+        {/* Scenario Testing Library - Full width, between Essential Services and Impact Visualiser */}
+        <section className="mt-8 mb-8">
+          <MemoizedScenarioLibrary />
+        </section>
 
         {/* Scenario Impact Visualiser - 32px margin top, full width */}
         <section className="mt-8">
