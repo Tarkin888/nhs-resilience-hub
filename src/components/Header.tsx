@@ -3,6 +3,7 @@ import { HelpCircle, ClipboardList, FlaskConical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import MethodologyPanel from './MethodologyPanel';
+import LiveClock from './LiveClock';
 import { cn } from '@/lib/utils';
 
 interface HeaderProps {
@@ -83,14 +84,10 @@ const Header = ({ isMethodologyOpen, onMethodologyOpenChange }: HeaderProps) => 
               </nav>
             </div>
 
-            {/* Right: Actions */}
+            {/* Right: Live Clock and Actions */}
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-              <div className="text-[10px] sm:text-xs text-muted-foreground">
-                <span className="hidden sm:inline">Last updated: </span>
-                <span className="font-medium text-foreground">
-                  {format(new Date(), 'dd MMM yyyy, HH:mm')}
-                </span>
-              </div>
+              {/* Live Clock */}
+              <LiveClock />
 
               <Button
                 variant="outline"

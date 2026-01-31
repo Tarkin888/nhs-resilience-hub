@@ -1,5 +1,4 @@
 import { useState, memo } from 'react';
-import { Link } from 'react-router-dom';
 import DemoBanner from '@/components/DemoBanner';
 import Header from '@/components/Header';
 import QuickStatsBar from '@/components/QuickStatsBar';
@@ -12,6 +11,7 @@ import CapitalCard from '@/components/CapitalCard';
 import DataSourcesModal from '@/components/DataSourcesModal';
 import StatusLegend from '@/components/StatusLegend';
 import AIRiskPredictionSection from '@/components/AIRiskPredictionSection';
+import StatusFooter from '@/components/StatusFooter';
 // import CapitalDependenciesNetwork from '@/components/dashboard/CapitalDependenciesNetwork';
 import { Skeleton } from '@/components/ui/skeleton';
 import { capitals, alerts, essentialServices } from '@/lib/data';
@@ -24,6 +24,7 @@ const MemoizedScenarioImpactVisualiser = memo(ScenarioImpactVisualiser);
 const MemoizedScenarioLibrary = memo(ScenarioLibrary);
 const MemoizedCapitalCard = memo(CapitalCard);
 const MemoizedAIRiskPredictionSection = memo(AIRiskPredictionSection);
+const MemoizedStatusFooter = memo(StatusFooter);
 // const MemoizedCapitalDependenciesNetwork = memo(CapitalDependenciesNetwork);
 
 // Loading skeleton for sections
@@ -107,67 +108,8 @@ const Index = () => {
         <MemoizedAIRiskPredictionSection />
       </main>
 
-      {/* Footer */}
-      <footer className="border-t bg-card mt-8">
-        <div className="max-w-[1400px] mx-auto px-4 md:px-8 py-8">
-          <div className="space-y-4">
-            {/* Built With */}
-            <div className="text-center">
-              <p className="text-sm font-medium text-foreground mb-1">Demo Application Built With:</p>
-              <p className="text-sm text-muted-foreground">
-                ResilienC Five Capitals Framework | xPercept.ai | Sector-Agnostic Resilience Methodology
-              </p>
-            </div>
-
-            {/* Disclaimer */}
-            <div className="bg-muted/50 rounded-lg p-4 text-center">
-              <p className="text-xs text-muted-foreground">
-                <strong>Disclaimer:</strong> This is a demonstration prototype using illustrative data. 
-                St. Mary's NHS Foundation Trust is a fictional organization. Not affiliated with NHS England.
-              </p>
-            </div>
-
-            {/* Support */}
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground">
-                <strong>Support:</strong> For demo inquiries:{' '}
-                <a 
-                  href="mailto:demo@example.com"
-                  className="text-primary hover:underline focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
-                >
-                  demo@example.com
-                </a>
-              </p>
-            </div>
-
-            {/* Copyright and Links */}
-            <div className="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-4 pt-2 border-t border-border text-sm text-muted-foreground">
-              <p>© 2026 ResilienC Framework</p>
-              <span className="hidden md:inline">|</span>
-              <div className="flex items-center gap-4">
-                <Link 
-                  to="/privacy"
-                  className="hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
-                >
-                  Privacy
-                </Link>
-                <Link 
-                  to="/accessibility"
-                  className="hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
-                >
-                  Accessibility
-                </Link>
-                <button
-                  onClick={() => setIsMethodologyOpen(true)}
-                  className="hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
-                >
-                  Methodology
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </footer>
+      {/* Enhanced Status Footer */}
+      <MemoizedStatusFooter onOpenMethodology={() => setIsMethodologyOpen(true)} />
 
       {/* Data Sources Modal */}
       <DataSourcesModal isOpen={isDataSourcesOpen} onClose={() => setIsDataSourcesOpen(false)} />
