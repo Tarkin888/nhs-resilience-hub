@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { HelpCircle, ClipboardList, FlaskConical } from 'lucide-react';
+import { HelpCircle, ClipboardList, FlaskConical, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import MethodologyPanel from './MethodologyPanel';
+import BoardReportModal from './BoardReportModal';
 import LiveClock from './LiveClock';
 import { cn } from '@/lib/utils';
 
@@ -13,6 +15,7 @@ interface HeaderProps {
 
 const Header = ({ isMethodologyOpen, onMethodologyOpenChange }: HeaderProps) => {
   const location = useLocation();
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   
   const isServicesActive = location.pathname.startsWith('/services');
   const isScenariosActive = location.pathname.startsWith('/scenarios');
@@ -89,6 +92,18 @@ const Header = ({ isMethodologyOpen, onMethodologyOpenChange }: HeaderProps) => 
               {/* Live Clock */}
               <LiveClock />
 
+              {/* Generate Board Report Button */}
+              <Button
+                variant="default"
+                size="sm"
+                className="h-8 sm:h-9 px-3 sm:px-4 gap-1.5 font-semibold bg-primary hover:bg-primary/90"
+                onClick={() => setIsReportModalOpen(true)}
+              >
+                <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
+                <span className="hidden lg:inline">Generate Board Report</span>
+                <span className="hidden md:inline lg:hidden">Board Report</span>
+              </Button>
+
               <Button
                 variant="outline"
                 size="sm"
@@ -98,7 +113,6 @@ const Header = ({ isMethodologyOpen, onMethodologyOpenChange }: HeaderProps) => 
               >
                 <HelpCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
               </Button>
-
             </div>
           </div>
         </div>
@@ -107,6 +121,11 @@ const Header = ({ isMethodologyOpen, onMethodologyOpenChange }: HeaderProps) => 
       <MethodologyPanel
         isOpen={isMethodologyOpen}
         onClose={() => onMethodologyOpenChange(false)}
+      />
+
+      <BoardReportModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
       />
     </>
   );
