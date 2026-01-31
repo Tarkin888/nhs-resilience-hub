@@ -9,6 +9,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import HistoricalSparkline from '@/components/HistoricalSparkline';
+import { getCapitalHistory, CapitalHistoryPoint } from '@/lib/capitalHistoryData';
 
 interface CapitalScoreCircleProps {
   capital: Capital;
@@ -28,6 +30,9 @@ const iconMap: Record<string, LucideIcon> = {
 const CapitalScoreCircle = memo(({ capital, index, onClick, dataTourId }: CapitalScoreCircleProps) => {
   const [animatedScore, setAnimatedScore] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+  
+  // Get historical data for this capital
+  const history: CapitalHistoryPoint[] = getCapitalHistory(capital.id);
 
   useEffect(() => {
     const duration = 1500;
@@ -241,6 +246,11 @@ const CapitalScoreCircle = memo(({ capital, index, onClick, dataTourId }: Capita
         <p className="mt-3 text-sm md:text-base font-semibold text-foreground text-center">
           {capital.name}
         </p>
+
+        {/* Historical Sparkline */}
+        <div className="mt-1">
+          <HistoricalSparkline history={history} className="text-center" />
+        </div>
       </div>
     </motion.div>
   );
