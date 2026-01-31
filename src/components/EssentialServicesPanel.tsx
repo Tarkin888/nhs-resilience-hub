@@ -1,9 +1,24 @@
-import { memo, useCallback, useState } from 'react';
+import { memo, useCallback, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle, AlertTriangle, XCircle, ChevronRight, Info } from 'lucide-react';
+import { 
+  CheckCircle, 
+  AlertTriangle, 
+  XCircle, 
+  ChevronRight, 
+  Info, 
+  Clock,
+  Activity,
+  Scissors,
+  Brain,
+  Baby,
+  Microscope,
+  HeartPulse,
+  Zap,
+  Users
+} from 'lucide-react';
 import { EssentialService } from '@/types';
 import { cn } from '@/lib/utils';
-import { format, isToday, isYesterday } from 'date-fns';
+import { format } from 'date-fns';
 import ServiceDetailSheet from './ServiceDetailSheet';
 import {
   Tooltip,
@@ -15,11 +30,50 @@ interface EssentialServicesPanelProps {
   services: EssentialService[];
 }
 
-const ServiceCard = memo(({ service, index, formatTimestamp, onViewDetails }: {
+// Map service IDs to their corresponding icons
+const serviceIconMap: Record<string, React.ElementType> = {
+  'es-1': Activity,        // Emergency Care
+  'es-2': Scissors,        // Elective Surgery
+  'es-3': Brain,           // Mental Health Crisis
+  'es-4': Baby,            // Maternity Services
+  'es-5': Microscope,      // Diagnostics
+  'es-6': HeartPulse,      // Critical Care
+  'es-7': Zap,             // Stroke Services
+  'es-8': Users,           // Children's Services
+  'emergency-care': Activity,
+  'elective-surgery': Scissors,
+  'mental-health-crisis': Brain,
+  'maternity-services': Baby,
+  'diagnostics': Microscope,
+  'critical-care': HeartPulse,
+  'stroke-services': Zap,
+  'childrens-services': Users,
+};
+
+// Utility function for relative time
+function getRelativeTime(date: Date): string {
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  
+  if (diffMins < 1) return 'Updated just now';
+  if (diffMins === 1) return 'Updated 1 min ago';
+  if (diffMins < 60) return `Updated ${diffMins} mins ago`;
+  
+  const diffHours = Math.floor(diffMins / 60);
+  if (diffHours === 1) return 'Updated 1 hour ago';
+  if (diffHours < 24) return `Updated ${diffHours} hours ago`;
+  
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays === 1) return 'Updated 1 day ago';
+  return `Updated ${diffDays} days ago`;
+}
+
+const ServiceCard = memo(({ service, index, onViewDetails, updateTrigger }: {
   service: EssentialService;
   index: number;
-  formatTimestamp: (date: Date) => string;
   onViewDetails: (service: EssentialService) => void;
+  updateTrigger: number;
 }) => {
   const isOperational = service.status === 'operational';
   const isDegraded = service.status === 'degraded';
@@ -29,37 +83,47 @@ const ServiceCard = memo(({ service, index, formatTimestamp, onViewDetails }: {
       return {
         icon: CheckCircle,
         label: 'Operational',
-        bgClass: 'bg-success',
-        textClass: 'text-success-foreground',
+        bgClass: 'bg-success/10',
+        textClass: 'text-success',
+        borderClass: 'border-l-success',
       };
     }
     if (isDegraded) {
       return {
         icon: AlertTriangle,
         label: 'Degraded',
-        bgClass: 'bg-warning',
+        bgClass: 'bg-warning/20',
         textClass: 'text-warning-foreground',
+        borderClass: 'border-l-warning',
       };
     }
     return {
       icon: XCircle,
       label: 'At Risk',
-      bgClass: 'bg-destructive',
-      textClass: 'text-destructive-foreground',
+      bgClass: 'bg-destructive/10',
+      textClass: 'text-destructive',
+      borderClass: 'border-l-destructive',
     };
   }, [isOperational, isDegraded]);
 
   const statusConfig = getStatusConfig();
   const StatusIcon = statusConfig.icon;
+  const ServiceIcon = serviceIconMap[service.id] || Activity;
 
   const handleClick = () => onViewDetails(service);
+
+  // Format absolute timestamp for tooltip
+  const absoluteTimestamp = format(service.lastUpdated, "d MMM yyyy, HH:mm");
 
   return (
     <motion.article
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.08 }}
-      className="bg-background border rounded-lg p-3 sm:p-4 transition-all duration-300 hover:shadow-card-hover cursor-pointer flex flex-col min-h-[140px] sm:min-h-[180px] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+      className={cn(
+        "bg-background border rounded-lg p-4 transition-all duration-300 hover:shadow-lg cursor-pointer flex flex-col min-h-[160px] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 border-l-4",
+        statusConfig.borderClass
+      )}
       onClick={handleClick}
       tabIndex={0}
       role="button"
@@ -71,43 +135,58 @@ const ServiceCard = memo(({ service, index, formatTimestamp, onViewDetails }: {
         }
       }}
     >
-      {/* Header with name and status */}
-      <div className="flex items-start justify-between gap-2 mb-2 sm:mb-3">
-        <h3 className="font-bold text-foreground text-sm sm:text-base leading-tight">
+      {/* Header with icon and name */}
+      <div className="flex items-center gap-2 mb-3">
+        <ServiceIcon className="h-5 w-5 sm:h-6 sm:w-6 text-primary flex-shrink-0" aria-hidden="true" />
+        <h3 className="font-bold text-foreground text-base sm:text-lg leading-tight">
           {service.name}
         </h3>
+      </div>
+
+      {/* Status Badge */}
+      <div className="mb-2">
         <span
           className={cn(
-            'flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium whitespace-nowrap',
+            'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs sm:text-sm font-semibold',
             statusConfig.bgClass,
             statusConfig.textClass
           )}
+          role="status"
+          aria-label={`Status: ${statusConfig.label}`}
         >
-          <StatusIcon className="h-3 w-3 sm:h-3.5 sm:w-3.5" aria-hidden="true" />
+          <StatusIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
           {statusConfig.label}
         </span>
       </div>
 
-      {/* Reason */}
-      <p className="text-xs sm:text-sm text-muted-foreground flex-1 line-clamp-2 sm:line-clamp-3">
+      {/* Status Explanation */}
+      <p className="text-sm text-muted-foreground flex-1 line-clamp-2 mb-3">
         {service.reason}
       </p>
 
-      {/* Footer */}
-      <div className="flex items-center justify-between mt-2 sm:mt-3 pt-2 sm:pt-3 border-t">
-        <span className="text-[10px] sm:text-xs text-muted-foreground">
-          {formatTimestamp(service.lastUpdated)}
-        </span>
+      {/* Footer with timestamp and action */}
+      <div className="flex items-center justify-between pt-3 border-t border-border">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="flex items-center gap-1 text-xs text-muted-foreground cursor-help">
+              <Clock className="h-3 w-3" aria-hidden="true" />
+              {getRelativeTime(service.lastUpdated)}
+            </span>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" className="text-xs">
+            Last updated: {absoluteTimestamp}
+          </TooltipContent>
+        </Tooltip>
         <button
-          className="text-[10px] sm:text-xs text-primary hover:underline flex items-center gap-0.5 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 rounded"
+          className="text-xs sm:text-sm text-primary hover:underline flex items-center gap-0.5 font-semibold focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 rounded"
           onClick={(e) => {
             e.stopPropagation();
             handleClick();
           }}
-          aria-label={`View status details for ${service.name}`}
+          aria-label={`View details for ${service.name}`}
         >
-          View Status
-          <ChevronRight className="h-3 w-3" aria-hidden="true" />
+          View Details
+          <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
         </button>
       </div>
     </motion.article>
@@ -119,16 +198,15 @@ ServiceCard.displayName = 'ServiceCard';
 const EssentialServicesPanel = memo(({ services }: EssentialServicesPanelProps) => {
   const [selectedService, setSelectedService] = useState<EssentialService | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [updateTrigger, setUpdateTrigger] = useState(0);
 
-  const formatTimestamp = useCallback((date: Date) => {
-    const timeStr = format(date, 'HH:mm');
-    if (isToday(date)) {
-      return `Today, ${timeStr}`;
-    }
-    if (isYesterday(date)) {
-      return `Yesterday, ${timeStr}`;
-    }
-    return format(date, 'dd MMM, HH:mm');
+  // Auto-update timestamps every 60 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setUpdateTrigger(prev => prev + 1);
+    }, 60000);
+    
+    return () => clearInterval(interval);
   }, []);
 
   const handleViewDetails = useCallback((service: EssentialService) => {
@@ -139,6 +217,10 @@ const EssentialServicesPanel = memo(({ services }: EssentialServicesPanelProps) 
   const handleCloseSheet = useCallback(() => {
     setIsSheetOpen(false);
   }, []);
+
+  // Count services by status
+  const atRiskCount = services.filter(s => s.status === 'at-risk').length;
+  const degradedCount = services.filter(s => s.status === 'degraded').length;
 
   return (
     <section 
@@ -194,17 +276,37 @@ const EssentialServicesPanel = memo(({ services }: EssentialServicesPanelProps) 
             </TooltipContent>
           </Tooltip>
         </div>
+
+        {/* Status Summary Badges */}
+        <div className="flex items-center gap-2">
+          {atRiskCount > 0 && (
+            <span 
+              className="px-2 py-1 bg-destructive text-destructive-foreground text-xs font-medium rounded"
+              aria-label={`${atRiskCount} services at risk`}
+            >
+              {atRiskCount} At Risk
+            </span>
+          )}
+          {degradedCount > 0 && (
+            <span 
+              className="px-2 py-1 bg-warning text-warning-foreground text-xs font-medium rounded"
+              aria-label={`${degradedCount} services degraded`}
+            >
+              {degradedCount} Degraded
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Service Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {services.map((service, index) => (
           <ServiceCard
             key={service.id}
             service={service}
             index={index}
-            formatTimestamp={formatTimestamp}
             onViewDetails={handleViewDetails}
+            updateTrigger={updateTrigger}
           />
         ))}
       </div>
