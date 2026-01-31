@@ -124,8 +124,9 @@ const LiveRiskAlerts = memo(({ alerts }: LiveRiskAlertsProps) => {
     setIsSheetOpen(false);
   }, []);
 
-  const redAlertCount = alerts.filter((a) => a.severity === 'red').length;
-  const totalCount = alerts.length;
+  const activeAlertCount = alerts.filter(
+    (a) => a.severity === 'red' || a.severity === 'amber'
+  ).length;
 
   return (
     <section 
@@ -134,20 +135,15 @@ const LiveRiskAlerts = memo(({ alerts }: LiveRiskAlertsProps) => {
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2 sm:gap-3">
-          <h2 id="risk-alerts-heading" className="text-lg sm:text-xl font-bold text-foreground">
-            Live Risk Alerts
-          </h2>
+        <h2 id="risk-alerts-heading" className="text-lg sm:text-xl font-bold text-foreground">
+          Live Risk Alerts
+        </h2>
+        {activeAlertCount > 0 && (
           <span 
-            className="flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-destructive text-destructive-foreground text-[10px] sm:text-xs font-bold"
-            aria-label={`${totalCount} total alerts`}
+            className="px-2 py-1 bg-destructive text-destructive-foreground text-xs font-medium rounded"
+            aria-label={`${activeAlertCount} active alerts`}
           >
-            {totalCount}
-          </span>
-        </div>
-        {redAlertCount > 0 && (
-          <span className="text-[10px] sm:text-xs text-destructive font-medium">
-            {redAlertCount} critical
+            {activeAlertCount} Active
           </span>
         )}
       </div>
