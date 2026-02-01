@@ -1,5 +1,5 @@
 import { useState, memo } from 'react';
-import DemoBanner from '@/components/DemoBanner';
+import DemoBanner from '@/components/common/DemoBanner';
 import Header from '@/components/Header';
 import QuickStatsBar from '@/components/QuickStatsBar';
 import FiveCapitalsDisplay from '@/components/FiveCapitalsDisplay';
@@ -47,8 +47,8 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       {/* Demo Banner - Full bleed, sticky */}
       <DemoBanner 
-        onOpenMethodology={() => setIsMethodologyOpen(true)} 
-        onOpenDataSources={() => setIsDataSourcesOpen(true)}
+        onMethodologyClick={() => setIsMethodologyOpen(true)} 
+        onDataSourcesClick={() => setIsDataSourcesOpen(true)}
       />
       
       {/* Status Legend - Fixed position, top-right */}
