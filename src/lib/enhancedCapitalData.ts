@@ -21,6 +21,7 @@ export const enhancedCapitalDetails: Record<string, EnhancedCapitalDetail> = {
         commentary: 'Critical gaps in nursing (78 FTE) and allied health professions (42 FTE). Highest level on record.',
         dataSource: {
           name: 'Representative of large acute trust vacancy levels (NHS England Workforce Stats)',
+          sourceType: 'public',
           nationalAverage: '9.2% vacancy rate',
           trustValue: '14.2% vacancy rate',
           lastUpdated: new Date('2025-01-24'),
@@ -40,6 +41,7 @@ export const enhancedCapitalDetails: Record<string, EnhancedCapitalDetail> = {
         commentary: 'Above NHS England average of 4.8%. Winter pressures contributing to increased absence.',
         dataSource: {
           name: 'NHS England Sickness Absence Statistics',
+          sourceType: 'public',
           nationalAverage: '4.8%',
           trustValue: '5.2%',
           lastUpdated: new Date('2025-01-24'),
@@ -59,6 +61,7 @@ export const enhancedCapitalDetails: Record<string, EnhancedCapitalDetail> = {
         commentary: 'Adequate but below regulatory target. Improvement plan in progress for Q2.',
         dataSource: {
           name: 'Illustrative training compliance data',
+          sourceType: 'demo',
           nationalAverage: '85% (typical NHS trust)',
           trustValue: '78%',
           lastUpdated: new Date('2025-01-24')
@@ -77,6 +80,7 @@ export const enhancedCapitalDetails: Record<string, EnhancedCapitalDetail> = {
         commentary: 'Decreased from 6.8 last quarter. Staff survey shows concerns about workload and support.',
         dataSource: {
           name: 'Illustrative staff survey results',
+          sourceType: 'demo',
           nationalAverage: '7.2/10 (NHS average)',
           trustValue: '6.1/10',
           lastUpdated: new Date('2025-01-15')
@@ -95,6 +99,7 @@ export const enhancedCapitalDetails: Record<string, EnhancedCapitalDetail> = {
         commentary: 'Particularly high in critical care (18%) and emergency department (16%).',
         dataSource: {
           name: 'Illustrative HR data',
+          sourceType: 'demo',
           nationalAverage: '11.8% (NHS average)',
           trustValue: '14.2%',
           lastUpdated: new Date('2025-01-24')
@@ -113,6 +118,7 @@ export const enhancedCapitalDetails: Record<string, EnhancedCapitalDetail> = {
         commentary: 'Key person risk in several senior clinical and operational roles.',
         dataSource: {
           name: 'Illustrative succession planning audit',
+          sourceType: 'assessment',
           nationalAverage: '75% (typical coverage)',
           trustValue: '62%',
           lastUpdated: new Date('2025-01-10')
@@ -180,8 +186,12 @@ export const enhancedCapitalDetails: Record<string, EnhancedCapitalDetail> = {
         status: 'amber',
         commentary: 'Below optimal reserve target. Limited buffer for unexpected financial pressures.',
         dataSource: {
-          name: 'Illustrative trust financial data',
-          lastUpdated: new Date('2025-01-24')
+          name: 'Illustrative trust financial data representative of large acute trust',
+          sourceType: 'demo',
+          nationalAverage: '£15M+ (typical target)',
+          trustValue: '£12.3M (82% of target)',
+          lastUpdated: new Date('2025-01-24'),
+          methodology: 'Based on typical NHS Trust reserve requirements and Winter pressure planning guidance'
         },
         showProgressBar: true
       },
@@ -196,10 +206,13 @@ export const enhancedCapitalDetails: Record<string, EnhancedCapitalDetail> = {
         status: 'red',
         commentary: 'Significantly over budget due to workforce gaps. Unsustainable cost pressure.',
         dataSource: {
-          name: 'NHS England Workforce Statistics + Illustrative adjustment',
-          nationalAverage: '+12% (typical overspend)',
+          name: 'NHS England Workforce Statistics (National average 18%) + illustrative trust adjustment',
+          sourceType: 'demo',
+          nationalAverage: '+18% (sector average)',
           trustValue: '+23%',
-          lastUpdated: new Date('2025-01-24')
+          lastUpdated: new Date('2025-01-24'),
+          methodology: 'Calculated from vacancy rates and typical agency cost premiums (35-45% above substantive)',
+          url: 'https://digital.nhs.uk/data-and-information/publications/statistical/nhs-workforce-statistics'
         },
         showProgressBar: true
       },
@@ -212,6 +225,7 @@ export const enhancedCapitalDetails: Record<string, EnhancedCapitalDetail> = {
         commentary: 'Contracts secured for next 12 months. Commissioning relationships strong.',
         dataSource: {
           name: 'Illustrative contractual position',
+          sourceType: 'demo',
           lastUpdated: new Date('2025-01-24')
         },
         showProgressBar: false
@@ -228,7 +242,44 @@ export const enhancedCapitalDetails: Record<string, EnhancedCapitalDetail> = {
         commentary: 'On track to meet year-end CIP target. Strong programme governance.',
         dataSource: {
           name: 'Illustrative CIP delivery data',
+          sourceType: 'demo',
+          lastUpdated: new Date('2025-01-24'),
+          methodology: 'Tracked against monthly milestones and savings realisation schedule'
+        },
+        showProgressBar: true
+      },
+      {
+        id: 'financial-kri-5',
+        name: 'Capital Expenditure Headroom',
+        value: '£2.1M',
+        numericValue: 2.1,
+        target: '>£5M',
+        numericTarget: 5,
+        trend: 'worsening',
+        status: 'amber',
+        commentary: 'Limited capacity for infrastructure investment. Capital allocation 87% committed.',
+        dataSource: {
+          name: 'Illustrative capital programme position',
+          sourceType: 'demo',
           lastUpdated: new Date('2025-01-24')
+        },
+        showProgressBar: true
+      },
+      {
+        id: 'financial-kri-6',
+        name: 'Debt Service Coverage',
+        value: '1.8x',
+        numericValue: 1.8,
+        target: '>2.0x',
+        numericTarget: 2.0,
+        trend: 'stable',
+        status: 'amber',
+        commentary: 'Adequate but not comfortable. Financing costs manageable.',
+        dataSource: {
+          name: 'Illustrative debt position',
+          sourceType: 'demo',
+          lastUpdated: new Date('2025-01-24'),
+          methodology: 'Operating income to debt service ratio'
         },
         showProgressBar: true
       }
@@ -294,6 +345,7 @@ export const enhancedCapitalDetails: Record<string, EnhancedCapitalDetail> = {
         commentary: 'Within normal operational range. Winter capacity managed effectively.',
         dataSource: {
           name: 'NHS England Monthly Statistics (National Winter Average)',
+          sourceType: 'public',
           nationalAverage: '87%',
           trustValue: '87%',
           lastUpdated: new Date('2025-01-24'),
@@ -313,6 +365,7 @@ export const enhancedCapitalDetails: Record<string, EnhancedCapitalDetail> = {
         commentary: 'Critical equipment operational. Minor planned maintenance scheduled Q2.',
         dataSource: {
           name: 'Illustrative medical equipment status',
+          sourceType: 'demo',
           lastUpdated: new Date('2025-01-24')
         },
         showProgressBar: true
@@ -326,6 +379,7 @@ export const enhancedCapitalDetails: Record<string, EnhancedCapitalDetail> = {
         commentary: 'Recent diversification of key suppliers reducing single points of failure.',
         dataSource: {
           name: 'Illustrative supply chain assessment',
+          sourceType: 'assessment',
           lastUpdated: new Date('2025-01-20')
         },
         showProgressBar: false
@@ -339,6 +393,7 @@ export const enhancedCapitalDetails: Record<string, EnhancedCapitalDetail> = {
         commentary: 'HVAC systems aging, scheduled replacement in Q3. Risk during extreme weather.',
         dataSource: {
           name: 'Illustrative estates condition survey',
+          sourceType: 'assessment',
           lastUpdated: new Date('2025-01-15')
         },
         showProgressBar: false
@@ -394,6 +449,7 @@ export const enhancedCapitalDetails: Record<string, EnhancedCapitalDetail> = {
         commentary: 'Last inspection 18 months ago. Re-inspection expected Q3 2025.',
         dataSource: {
           name: 'CQC Inspection Ratings (Public Record)',
+          sourceType: 'cqc',
           lastUpdated: new Date('2023-07-24'),
           url: 'https://www.cqc.org.uk/'
         },
@@ -411,6 +467,7 @@ export const enhancedCapitalDetails: Record<string, EnhancedCapitalDetail> = {
         commentary: 'Improved from 78% last year. Maternity services particularly strong.',
         dataSource: {
           name: 'NHS Friends & Family Test National Average',
+          sourceType: 'public',
           nationalAverage: '80%',
           trustValue: '82%',
           lastUpdated: new Date('2025-01-24'),
@@ -427,6 +484,7 @@ export const enhancedCapitalDetails: Record<string, EnhancedCapitalDetail> = {
         commentary: 'Recent local coverage highlighting maternity services improvements.',
         dataSource: {
           name: 'Illustrative media monitoring',
+          sourceType: 'demo',
           lastUpdated: new Date('2025-01-22')
         },
         showProgressBar: false
@@ -440,6 +498,7 @@ export const enhancedCapitalDetails: Record<string, EnhancedCapitalDetail> = {
         commentary: 'No enforcement actions or improvement notices. Strong regulatory relationships.',
         dataSource: {
           name: 'CQC Regulatory Status (Public Record)',
+          sourceType: 'cqc',
           lastUpdated: new Date('2025-01-24')
         },
         showProgressBar: false
@@ -495,7 +554,9 @@ export const enhancedCapitalDetails: Record<string, EnhancedCapitalDetail> = {
         commentary: 'High failure risk during heatwave. Replacement scheduled Q3 2025 but funding not yet secured.',
         dataSource: {
           name: 'Based on typical NHS estate age profile (NHS Property Services data)',
-          lastUpdated: new Date('2025-01-24')
+          sourceType: 'standard',
+          lastUpdated: new Date('2025-01-24'),
+          methodology: 'Assessment based on ERIC returns and NHS Property Services benchmarks'
         },
         showProgressBar: false
       },
@@ -508,6 +569,7 @@ export const enhancedCapitalDetails: Record<string, EnhancedCapitalDetail> = {
         commentary: 'Limited backup power capacity (4 hours). No backup cooling systems.',
         dataSource: {
           name: 'Illustrative estates resilience assessment',
+          sourceType: 'assessment',
           lastUpdated: new Date('2025-01-24')
         },
         showProgressBar: false
@@ -521,7 +583,9 @@ export const enhancedCapitalDetails: Record<string, EnhancedCapitalDetail> = {
         commentary: 'Net zero pathway progressing. Solar panels operational, fleet electrification underway.',
         dataSource: {
           name: 'NHS Net Zero Target (2040) - Illustrative progress',
-          lastUpdated: new Date('2025-01-24')
+          sourceType: 'standard',
+          lastUpdated: new Date('2025-01-24'),
+          methodology: 'Measured against NHS Delivering a Net Zero NHS roadmap targets'
         },
         showProgressBar: false
       },
@@ -534,6 +598,7 @@ export const enhancedCapitalDetails: Record<string, EnhancedCapitalDetail> = {
         commentary: 'Legionella controls effective. Testing compliant with HSE guidance.',
         dataSource: {
           name: 'Illustrative water safety compliance',
+          sourceType: 'demo',
           lastUpdated: new Date('2025-01-24')
         },
         showProgressBar: false
