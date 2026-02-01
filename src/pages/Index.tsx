@@ -1,5 +1,6 @@
 import { useState, memo } from 'react';
 import DemoBanner from '@/components/common/DemoBanner';
+import DataSourceLegend from '@/components/common/DataSourceLegend';
 import Header from '@/components/Header';
 import QuickStatsBar from '@/components/QuickStatsBar';
 import FiveCapitalsDisplay from '@/components/FiveCapitalsDisplay';
@@ -53,6 +54,9 @@ const Index = () => {
       
       {/* Status Legend - Fixed position, top-right */}
       <StatusLegend />
+      
+      {/* Data Source Legend - Fixed position, bottom-right */}
+      <DataSourceLegend position="bottom-right" />
       
       {/* Header - Full bleed */}
       <Header 
