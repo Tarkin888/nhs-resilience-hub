@@ -295,12 +295,12 @@ const CapitalDetailPanel = ({ capital, isOpen, onClose }: CapitalDetailPanelProp
 
                   {/* Enhanced KRI Cards */}
                   <section>
-                    <h3 className="font-semibold text-foreground mb-4">
+                    <h3 className="font-semibold text-lg text-foreground mb-4">
                       Key Risk Indicators
                     </h3>
                     <div className="space-y-4">
-                      {details?.kris.map((kri) => (
-                        <EnhancedKRICard key={kri.id} kri={kri} />
+                      {details?.kris.map((kri, index) => (
+                        <EnhancedKRICard key={kri.id} kri={kri} index={index} />
                       ))}
                     </div>
                   </section>
