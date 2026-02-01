@@ -3,12 +3,15 @@ import { Trend } from './index';
 export type KRIStatus = 'red' | 'amber' | 'green';
 export type PriorityLevel = 'critical' | 'high' | 'medium' | 'good';
 export type ActionPriority = 'high' | 'medium' | 'low';
+export type SourceType = 'public' | 'cqc' | 'standard' | 'assessment' | 'demo';
 
 export interface DataSource {
   name: string;
+  sourceType: SourceType;
   nationalAverage?: string;
   trustValue?: string;
   lastUpdated: Date;
+  methodology?: string;
   url?: string;
 }
 
