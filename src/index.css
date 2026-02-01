@@ -55,6 +55,17 @@
     --tooltip-dark: 210 24% 24%; /* #2C3E50 */
     --tooltip-dark-foreground: 0 0% 100%;
 
+    /* Info icon colors */
+    --info-icon: 0 0% 46%; /* #757575 */
+    --info-icon-hover: 210 79% 46%; /* #1976D2 */
+
+    /* Source type badge colors */
+    --source-public: 207 90% 54%; /* #2196F3 Blue */
+    --source-cqc: 122 39% 49%; /* #4CAF50 Green */
+    --source-standard: 45 100% 51%; /* #FFC107 Yellow */
+    --source-assessment: 36 100% 50%; /* #FF9800 Orange */
+    --source-demo: 4 90% 58%; /* #F44336 Red */
+
     --border: 192 20% 88%;
     --input: 192 20% 88%;
     --ring: 209 100% 36%;
@@ -105,6 +116,17 @@
 
     --demo: 207 50% 20%;
     --demo-foreground: 207 89% 80%;
+
+    /* Info icon colors - dark mode */
+    --info-icon: 0 0% 60%;
+    --info-icon-hover: 210 79% 60%;
+
+    /* Source type badge colors - same in dark mode */
+    --source-public: 207 90% 54%;
+    --source-cqc: 122 39% 49%;
+    --source-standard: 45 100% 51%;
+    --source-assessment: 36 100% 50%;
+    --source-demo: 4 90% 58%;
 
     --border: 200 24% 25%;
     --input: 200 24% 25%;
