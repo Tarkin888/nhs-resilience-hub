@@ -200,42 +200,52 @@ const CapitalScoreCircle = memo(({ capital, index, onClick, dataTourId }: Capita
             </motion.div>
           )}
 
-          {/* Info Tooltip */}
-          <div className="absolute -top-1 -right-1" data-tour="info-icon">
-            <Tooltip>
+          {/* Info Tooltip - positioned to avoid overlap */}
+          <div className="absolute -top-1 -right-1 z-10" data-tour="info-icon">
+            <Tooltip delayDuration={200}>
               <TooltipTrigger asChild>
                 <button 
-                  className="w-5 h-5 rounded-full bg-card border flex items-center justify-center hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
+                  className="w-5 h-5 rounded-full bg-card border border-border flex items-center justify-center hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 shadow-sm"
                   aria-label={`More information about ${capital.name} capital`}
+                  onClick={(e) => e.stopPropagation()}
                 >
                   <Info className="h-3 w-3 text-muted-foreground" aria-hidden="true" />
                 </button>
               </TooltipTrigger>
               <TooltipContent
-                side="top"
-                className="max-w-[300px] p-3 bg-[hsl(var(--tooltip-dark))] text-[hsl(var(--tooltip-dark-foreground))] border-0"
+                side="right"
+                align="start"
+                sideOffset={12}
+                className="z-[1000] max-w-[300px] p-4 border-0 shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
+                style={{
+                  backgroundColor: '#2C3E50',
+                  color: '#FFFFFF',
+                }}
               >
-                <div className="space-y-2 text-sm">
+                <div className="space-y-2.5 text-sm">
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold">Score:</span>
-                    <span>
+                    <span className="font-semibold text-white/90">Score:</span>
+                    <span className="text-white">
                       {capital.score}/100 ({getStatusLabel(capital.score)},{' '}
                       <span className="capitalize">{capital.trend}</span>)
                     </span>
                     {getTrendIcon()}
                   </div>
                   <div>
-                    <span className="font-semibold">Source:</span>{' '}
-                    ResilienC Five Capitals Assessment
+                    <span className="font-semibold text-white/90">Source:</span>{' '}
+                    <span className="text-white">ResilienC Five Capitals Assessment</span>
                   </div>
                   <div>
-                    <span className="font-semibold">Methodology:</span>{' '}
-                    Weighted average of {capital.kris.length} Key Risk Indicators
+                    <span className="font-semibold text-white/90">Methodology:</span>{' '}
+                    <span className="text-white">Weighted average of {capital.kris.length} Key Risk Indicators</span>
                   </div>
                   <div>
-                    <span className="font-semibold">Last Assessed:</span>{' '}
-                    15 Jan 2025
+                    <span className="font-semibold text-white/90">Last Assessed:</span>{' '}
+                    <span className="text-white">15 Jan 2025</span>
                   </div>
+                  <p className="text-xs text-white/70 pt-2 border-t border-white/20 mt-2">
+                    Click the circle to view detailed metrics
+                  </p>
                 </div>
               </TooltipContent>
             </Tooltip>
