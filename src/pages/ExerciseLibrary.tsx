@@ -285,8 +285,25 @@ const ExerciseLibrary = () => {
         </div>
 
         {filteredExercises.length === 0 && (
-          <Card className="p-12 text-center">
-            <p className="text-muted-foreground">No exercises match the selected filters.</p>
+          <Card className="p-12 text-center flex flex-col items-center gap-4">
+            <p className="text-muted-foreground">
+              {searchQuery 
+                ? `No exercises found for '${searchQuery}'` 
+                : 'No exercises match the selected filters.'}
+            </p>
+            {(typeFilter !== 'all' || categoryFilter !== 'all' || searchQuery !== '') && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  setTypeFilter('all');
+                  setCategoryFilter('all');
+                  setSearchQuery('');
+                }}
+              >
+                Clear Filters
+              </Button>
+            )}
           </Card>
         )}
       </main>
