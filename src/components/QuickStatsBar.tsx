@@ -1,11 +1,13 @@
 import { memo, useCallback, useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Bed, UserX, Shield, Calendar, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAnimatedValue } from '@/hooks/useAnimatedValue';
 import LiveMonitoringBadge from './LiveMonitoringBadge';
+import InfoTooltip, { DataSourceInfo, SourceType } from './common/InfoTooltip';
 
 interface StatCard {
+  id: string;
   icon: React.ElementType;
   label: string;
   value: string | number;
@@ -13,6 +15,7 @@ interface StatCard {
   trend?: 'up' | 'down' | 'stable';
   trendLabel?: string;
   isDynamic?: boolean;
+  dataSource: DataSourceInfo;
 }
 
 interface StatCardItemProps {
@@ -20,6 +23,15 @@ interface StatCardItemProps {
   index: number;
   isHighlighted?: boolean;
 }
+
+// Source type dot colors
+const sourceTypeDotClass: Record<SourceType, string> = {
+  public: 'bg-[hsl(var(--source-public))]',
+  cqc: 'bg-[hsl(var(--source-cqc))]',
+  standard: 'bg-[hsl(var(--source-standard))]',
+  assessment: 'bg-[hsl(var(--source-assessment))]',
+  demo: 'bg-[hsl(var(--source-demo))]',
+};
 
 const StatCardItem = memo(({ stat, index, isHighlighted }: StatCardItemProps) => {
   const getTrendIcon = useCallback((trend?: string) => {
@@ -53,9 +65,17 @@ const StatCardItem = memo(({ stat, index, isHighlighted }: StatCardItemProps) =>
         <stat.icon className="h-4 w-4 md:h-5 md:w-5 text-primary" />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-[11px] md:text-xs text-muted-foreground truncate">
-          {stat.label}
-        </p>
+        <div className="flex items-center gap-1">
+          {/* Source type dot indicator */}
+          <span 
+            className={cn('w-1.5 h-1.5 rounded-full shrink-0', sourceTypeDotClass[stat.dataSource.sourceType])} 
+            aria-hidden="true"
+          />
+          <p className="text-[11px] md:text-xs text-muted-foreground truncate">
+            {stat.label}
+          </p>
+          <InfoTooltip dataSource={stat.dataSource} position="bottom" className="ml-0" />
+        </div>
         <div className="flex items-center gap-1 md:gap-2">
           <p className="text-base md:text-lg font-bold text-foreground truncate">
             {stat.value}{stat.suffix || ''}
@@ -82,6 +102,34 @@ const StatCardItem = memo(({ stat, index, isHighlighted }: StatCardItemProps) =>
 });
 
 StatCardItem.displayName = 'StatCardItem';
+
+// Data source information for quick stats
+const quickStatsDataSources: Record<string, DataSourceInfo> = {
+  bedOccupancy: {
+    source: 'NHS England Monthly Statistics (National Winter Average)',
+    sourceType: 'public',
+    lastUpdated: new Date('2025-01-24'),
+    methodology: 'National average for acute trusts during winter period',
+    sourceUrl: 'https://www.england.nhs.uk/statistics/'
+  },
+  staffVacancies: {
+    source: 'Representative of large acute trust vacancy levels (NHS England Workforce Stats)',
+    sourceType: 'demo',
+    lastUpdated: new Date('2025-01-24'),
+    methodology: 'Illustrative data based on national workforce statistics patterns'
+  },
+  daysSinceIncident: {
+    source: 'Internal incident log (illustrative)',
+    sourceType: 'demo',
+    lastUpdated: new Date('2025-01-24')
+  },
+  nextTest: {
+    source: 'Resilience testing schedule',
+    sourceType: 'assessment',
+    lastUpdated: new Date('2025-01-24'),
+    methodology: 'Scheduled exercises aligned with NHS England resilience guidance'
+  }
+};
 
 const QuickStatsBar = memo(() => {
   // Dynamic values with occasional updates
@@ -130,6 +178,7 @@ const QuickStatsBar = memo(() => {
 
   const stats: StatCard[] = [
     {
+      id: 'bedOccupancy',
       icon: Bed,
       label: 'Current bed occupancy',
       value: animatedBedOccupancy,
@@ -137,24 +186,31 @@ const QuickStatsBar = memo(() => {
       trend: 'stable',
       trendLabel: 'Stable',
       isDynamic: true,
+      dataSource: quickStatsDataSources.bedOccupancy,
     },
     {
+      id: 'staffVacancies',
       icon: UserX,
       label: 'Staff vacancies',
       value: `${animatedStaffVacancies} FTE`,
       trend: 'up',
       trendLabel: '+12 this month',
       isDynamic: true,
+      dataSource: quickStatsDataSources.staffVacancies,
     },
     {
+      id: 'daysSinceIncident',
       icon: Shield,
       label: 'Days since last major incident',
       value: '23',
+      dataSource: quickStatsDataSources.daysSinceIncident,
     },
     {
+      id: 'nextTest',
       icon: Calendar,
       label: 'Next resilience test',
-      value: '15 Mar 2026 (Cyber-attack desktop exercise)',
+      value: '15 Mar 2026',
+      dataSource: quickStatsDataSources.nextTest,
     },
   ];
 
@@ -171,12 +227,12 @@ const QuickStatsBar = memo(() => {
           <div className="flex-1 grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4">
             {stats.map((stat, index) => (
               <StatCardItem 
-                key={stat.label} 
+                key={stat.id} 
                 stat={stat} 
                 index={index}
                 isHighlighted={
-                  (stat.label === 'Current bed occupancy' && highlightedStat === 'bed') ||
-                  (stat.label === 'Staff vacancies' && highlightedStat === 'staff')
+                  (stat.id === 'bedOccupancy' && highlightedStat === 'bed') ||
+                  (stat.id === 'staffVacancies' && highlightedStat === 'staff')
                 }
               />
             ))}
