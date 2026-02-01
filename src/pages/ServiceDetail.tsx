@@ -8,7 +8,7 @@ import {
   Calendar,
   Info
 } from 'lucide-react';
-import DemoBanner from '@/components/DemoBanner';
+import DemoBanner from '@/components/common/DemoBanner';
 import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -60,8 +60,8 @@ const ServiceDetail = () => {
   return (
     <div className="min-h-screen bg-background">
       <DemoBanner 
-        onOpenMethodology={() => setIsMethodologyOpen(true)} 
-        onOpenDataSources={() => setIsDataSourcesOpen(true)}
+        onMethodologyClick={() => setIsMethodologyOpen(true)} 
+        onDataSourcesClick={() => setIsDataSourcesOpen(true)}
       />
       
       <Header 
