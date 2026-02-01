@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import { AlertTriangle, Zap, Info } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { PriorityAssessment, PriorityLevel } from '@/types/capitalDetails';
 import { cn } from '@/lib/utils';
 
@@ -55,7 +56,10 @@ const PriorityAssessmentBox = memo(({ assessment }: PriorityAssessmentBoxProps) 
   const Icon = config.icon;
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.3, delay: 0.3 }}
       className={cn(
         'rounded-lg border-2 p-5',
         config.bg,
@@ -68,14 +72,14 @@ const PriorityAssessmentBox = memo(({ assessment }: PriorityAssessmentBoxProps) 
         </div>
         <div className="flex-1 min-w-0">
           <h4 className={cn('font-bold text-lg', config.textColor)}>
-            {assessment.title}
+            ⚠️ {assessment.title}
           </h4>
           <p className={cn('mt-1 text-sm leading-relaxed', config.textColor, 'opacity-90')}>
             {assessment.description}
           </p>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 });
 
