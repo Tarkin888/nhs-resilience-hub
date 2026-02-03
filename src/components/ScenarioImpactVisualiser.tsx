@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, memo } from 'react';
+import { useState, useCallback, useMemo, memo, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,6 +28,36 @@ import {
   TrendingDown,
 } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+
+// Mapping from ScenarioLibrary IDs to Visualiser IDs
+const scenarioIdMapping: Record<string, string> = {
+  'cyber-ransomware': 'ransomware',
+  'equipment-failure': 'power', // Maps to closest equivalent
+  'supply-chain': 'pandemic', // Maps to closest equivalent
+  'it-outage': 'ransomware', // Maps to closest equivalent
+  'building-evacuation': 'power', // Maps to closest equivalent
+  'mass-casualty': 'pandemic',
+  'infection-outbreak': 'pandemic',
+  'medication-error': 'strike',
+  'heatwave': 'heatwave',
+  'flooding': 'power',
+  'power-outage': 'power',
+  'data-breach': 'ransomware',
+  'phishing-attack': 'ransomware',
+  'social-engineering': 'ransomware',
+  'nursing-strike': 'strike',
+  'doctor-strike': 'strike',
+  'key-staff-departure': 'strike',
+  'whistleblowing': 'strike',
+};
+
+export interface ScenarioImpactVisualiserRef {
+  runScenarioById: (scenarioId: string) => void;
+}
+
+export interface ScenarioImpactVisualiserProps {
+  id?: string;
+}
 
 interface ScenarioImpact {
   capital: string;
@@ -251,54 +281,91 @@ const scenarios: Scenario[] = [
   },
 ];
 
-export const ScenarioImpactVisualiser = memo(() => {
-  const [selectedScenario, setSelectedScenario] = useState<string>('');
-  const [isRunning, setIsRunning] = useState(false);
-  const [showResults, setShowResults] = useState(false);
-  const [visibleCards, setVisibleCards] = useState<number>(0);
+export const ScenarioImpactVisualiser = memo(forwardRef<ScenarioImpactVisualiserRef, ScenarioImpactVisualiserProps>(
+  function ScenarioImpactVisualiser({ id }, ref) {
+    const [selectedScenario, setSelectedScenario] = useState<string>('');
+    const [isRunning, setIsRunning] = useState(false);
+    const [showResults, setShowResults] = useState(false);
+    const [visibleCards, setVisibleCards] = useState<number>(0);
 
-  const currentScenario = useMemo(() => 
-    scenarios.find((s) => s.id === selectedScenario),
-    [selectedScenario]
-  );
+    const currentScenario = useMemo(() => 
+      scenarios.find((s) => s.id === selectedScenario),
+      [selectedScenario]
+    );
 
-  const runScenario = useCallback(() => {
-    if (!selectedScenario || !currentScenario) return;
+    const runScenario = useCallback(() => {
+      if (!selectedScenario || !currentScenario) return;
 
-    setIsRunning(true);
-    setShowResults(true);
-    setVisibleCards(0);
+      setIsRunning(true);
+      setShowResults(true);
+      setVisibleCards(0);
 
-    // Animate cards appearing sequentially
-    const totalCards = currentScenario.impacts.length;
-    for (let i = 0; i < totalCards; i++) {
+      // Animate cards appearing sequentially
+      const totalCards = currentScenario.impacts.length;
+      for (let i = 0; i < totalCards; i++) {
+        setTimeout(() => {
+          setVisibleCards((prev) => prev + 1);
+        }, (i + 1) * 500);
+      }
+
       setTimeout(() => {
-        setVisibleCards((prev) => prev + 1);
-      }, (i + 1) * 500);
-    }
+        setIsRunning(false);
+      }, totalCards * 500 + 500);
+    }, [selectedScenario, currentScenario]);
 
-    setTimeout(() => {
-      setIsRunning(false);
-    }, totalCards * 500 + 500);
-  }, [selectedScenario, currentScenario]);
+    // External trigger to run a scenario by ID (from ScenarioLibrary)
+    const runScenarioById = useCallback((libraryScenarioId: string) => {
+      // Map the library scenario ID to visualiser scenario ID
+      const visualiserScenarioId = scenarioIdMapping[libraryScenarioId] || libraryScenarioId;
+      
+      // Check if the mapped scenario exists
+      const scenario = scenarios.find(s => s.id === visualiserScenarioId);
+      if (!scenario) {
+        console.warn(`Scenario not found: ${libraryScenarioId} -> ${visualiserScenarioId}`);
+        return;
+      }
 
-  const resetScenario = useCallback(() => {
-    setShowResults(false);
-    setVisibleCards(0);
-    setSelectedScenario('');
-  }, []);
+      // Reset state and set the scenario
+      setShowResults(false);
+      setVisibleCards(0);
+      setSelectedScenario(visualiserScenarioId);
+    }, []);
 
-  const handleScenarioChange = useCallback((value: string) => {
-    setSelectedScenario(value);
-  }, []);
+    // Expose the runScenarioById method via ref
+    useImperativeHandle(ref, () => ({
+      runScenarioById
+    }), [runScenarioById]);
 
-  const totalImpact = useMemo(() => 
-    currentScenario?.impacts.reduce((sum, i) => sum + i.impact, 0) || 0,
-    [currentScenario]
-  );
+    // Auto-run when selectedScenario changes from external trigger
+    useEffect(() => {
+      if (selectedScenario && !showResults && !isRunning) {
+        // Small delay to allow UI to update
+        const timer = setTimeout(() => {
+          runScenario();
+        }, 100);
+        return () => clearTimeout(timer);
+      }
+    }, [selectedScenario, showResults, isRunning, runScenario]);
 
-  return (
-    <Card className="bg-card shadow-card rounded-lg transition-all duration-300 hover:shadow-card-hover">
+    const resetScenario = useCallback(() => {
+      setShowResults(false);
+      setVisibleCards(0);
+      setSelectedScenario('');
+    }, []);
+
+    const handleScenarioChange = useCallback((value: string) => {
+      setSelectedScenario(value);
+      setShowResults(false);
+      setVisibleCards(0);
+    }, []);
+
+    const totalImpact = useMemo(() => 
+      currentScenario?.impacts.reduce((sum, i) => sum + i.impact, 0) || 0,
+      [currentScenario]
+    );
+
+    return (
+      <Card id={id} className="bg-card shadow-card rounded-lg transition-all duration-300 hover:shadow-card-hover">
       <CardHeader className="pb-4 px-4 sm:px-6">
         <CardTitle className="text-lg sm:text-xl font-bold text-foreground">
           Scenario Impact Visualiser
@@ -493,6 +560,6 @@ export const ScenarioImpactVisualiser = memo(() => {
       </CardContent>
     </Card>
   );
-});
+}));
 
 ScenarioImpactVisualiser.displayName = 'ScenarioImpactVisualiser';
