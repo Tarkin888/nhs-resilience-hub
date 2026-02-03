@@ -9,6 +9,7 @@ import { Filter } from 'lucide-react';
 
 interface ScenarioLibraryProps {
   onRunScenario?: (scenario: EnhancedScenario) => void;
+  runningScenarioId?: string | null;
 }
 
 type StatusFilter = 'all' | TestStatus;
@@ -21,7 +22,7 @@ const statusFilterOptions: { value: StatusFilter; label: string }[] = [
   { value: 'never-tested', label: 'Never Tested' },
 ];
 
-export const ScenarioLibrary = memo(function ScenarioLibrary({ onRunScenario }: ScenarioLibraryProps) {
+export const ScenarioLibrary = memo(function ScenarioLibrary({ onRunScenario, runningScenarioId }: ScenarioLibraryProps) {
   // Initialize expanded state with categories marked as defaultExpanded
   const [expandedCategories, setExpandedCategories] = useState<string[]>(
     scenarioCategories
@@ -176,6 +177,7 @@ export const ScenarioLibrary = memo(function ScenarioLibrary({ onRunScenario }: 
                             <ScenarioCard
                               scenario={scenario}
                               onRun={handleRunScenario}
+                              isRunning={runningScenarioId === scenario.id}
                             />
                           </motion.div>
                         ))}
