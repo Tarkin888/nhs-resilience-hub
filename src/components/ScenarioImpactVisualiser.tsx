@@ -410,9 +410,15 @@ export const ScenarioImpactVisualiser = memo(forwardRef<ScenarioImpactVisualiser
         </AnimatePresence>
 
         <CardHeader className="pb-4 px-4 sm:px-6">
-          <CardTitle className="text-lg sm:text-xl font-bold text-foreground">
-            Scenario Impact Visualiser
-          </CardTitle>
+          <div className="flex items-center gap-2">
+            <span className="text-lg" aria-hidden="true">📊</span>
+            <CardTitle className="text-lg sm:text-xl font-bold text-foreground">
+              Scenario Impact Visualiser
+            </CardTitle>
+          </div>
+          <p className="text-sm text-muted-foreground mt-1.5 max-w-lg">
+            View how disruption cascades across all five capitals. Select a scenario above or choose from the dropdown.
+          </p>
         </CardHeader>
         <CardContent className="space-y-4 sm:space-y-6 px-4 sm:px-6">
           {/* Execution Progress Banner */}
