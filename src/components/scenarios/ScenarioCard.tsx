@@ -1,4 +1,4 @@
-import { memo, useState } from 'react';
+import { memo } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Play, 
@@ -53,19 +53,15 @@ const iconMap: Record<string, LucideIcon> = {
 interface ScenarioCardProps {
   scenario: EnhancedScenario;
   onRun: (scenario: EnhancedScenario) => void;
+  isRunning?: boolean;
 }
 
-export const ScenarioCard = memo(function ScenarioCard({ scenario, onRun }: ScenarioCardProps) {
-  const [isRunning, setIsRunning] = useState(false);
-  
+export const ScenarioCard = memo(function ScenarioCard({ scenario, onRun, isRunning = false }: ScenarioCardProps) {
   const Icon = iconMap[scenario.icon] || AlertCircle;
   
-  const handleRun = async () => {
-    setIsRunning(true);
-    // Simulate a brief loading state
-    await new Promise(resolve => setTimeout(resolve, 500));
+  const handleRun = () => {
+    if (isRunning) return;
     onRun(scenario);
-    setIsRunning(false);
   };
   
   return (
@@ -125,14 +121,15 @@ export const ScenarioCard = memo(function ScenarioCard({ scenario, onRun }: Scen
             disabled={isRunning}
             className={cn(
               "w-full sm:w-auto sm:h-full min-w-[130px] gap-2",
-              "bg-primary hover:bg-primary/90 text-primary-foreground"
+              "bg-primary hover:bg-primary/90 text-primary-foreground",
+              "transition-all duration-200"
             )}
-            aria-label={`Run ${scenario.name} scenario`}
+            aria-label={isRunning ? `Running ${scenario.name} scenario` : `Run ${scenario.name} scenario`}
           >
             {isRunning ? (
               <>
                 <LoadingSpinner size="sm" />
-                Running...
+                <span className="whitespace-nowrap">Running Scenario...</span>
               </>
             ) : (
               <>

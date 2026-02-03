@@ -57,6 +57,8 @@ export interface ScenarioImpactVisualiserRef {
 
 export interface ScenarioImpactVisualiserProps {
   id?: string;
+  onExecutionStart?: () => void;
+  onExecutionEnd?: () => void;
 }
 
 interface ScenarioImpact {
@@ -282,11 +284,13 @@ const scenarios: Scenario[] = [
 ];
 
 export const ScenarioImpactVisualiser = memo(forwardRef<ScenarioImpactVisualiserRef, ScenarioImpactVisualiserProps>(
-  function ScenarioImpactVisualiser({ id }, ref) {
+  function ScenarioImpactVisualiser({ id, onExecutionStart, onExecutionEnd }, ref) {
     const [selectedScenario, setSelectedScenario] = useState<string>('');
     const [isRunning, setIsRunning] = useState(false);
     const [showResults, setShowResults] = useState(false);
     const [visibleCards, setVisibleCards] = useState<number>(0);
+    const [isPreparing, setIsPreparing] = useState(false);
+    const [isHighlighted, setIsHighlighted] = useState(false);
 
     const currentScenario = useMemo(() => 
       scenarios.find((s) => s.id === selectedScenario),
@@ -296,6 +300,7 @@ export const ScenarioImpactVisualiser = memo(forwardRef<ScenarioImpactVisualiser
     const runScenario = useCallback(() => {
       if (!selectedScenario || !currentScenario) return;
 
+      setIsPreparing(false);
       setIsRunning(true);
       setShowResults(true);
       setVisibleCards(0);
@@ -310,8 +315,9 @@ export const ScenarioImpactVisualiser = memo(forwardRef<ScenarioImpactVisualiser
 
       setTimeout(() => {
         setIsRunning(false);
+        onExecutionEnd?.();
       }, totalCards * 500 + 500);
-    }, [selectedScenario, currentScenario]);
+    }, [selectedScenario, currentScenario, onExecutionEnd]);
 
     // External trigger to run a scenario by ID (from ScenarioLibrary)
     const runScenarioById = useCallback((libraryScenarioId: string) => {
@@ -325,11 +331,21 @@ export const ScenarioImpactVisualiser = memo(forwardRef<ScenarioImpactVisualiser
         return;
       }
 
+      // Show preparing state and highlight
+      setIsPreparing(true);
+      setIsHighlighted(true);
+      onExecutionStart?.();
+
       // Reset state and set the scenario
       setShowResults(false);
       setVisibleCards(0);
       setSelectedScenario(visualiserScenarioId);
-    }, []);
+
+      // Remove highlight after 2 seconds
+      setTimeout(() => {
+        setIsHighlighted(false);
+      }, 2000);
+    }, [onExecutionStart]);
 
     // Expose the runScenarioById method via ref
     useImperativeHandle(ref, () => ({
@@ -338,25 +354,27 @@ export const ScenarioImpactVisualiser = memo(forwardRef<ScenarioImpactVisualiser
 
     // Auto-run when selectedScenario changes from external trigger
     useEffect(() => {
-      if (selectedScenario && !showResults && !isRunning) {
-        // Small delay to allow UI to update
+      if (selectedScenario && !showResults && !isRunning && isPreparing) {
+        // Delay to show the preparing banner
         const timer = setTimeout(() => {
           runScenario();
-        }, 100);
+        }, 800);
         return () => clearTimeout(timer);
       }
-    }, [selectedScenario, showResults, isRunning, runScenario]);
+    }, [selectedScenario, showResults, isRunning, isPreparing, runScenario]);
 
     const resetScenario = useCallback(() => {
       setShowResults(false);
       setVisibleCards(0);
       setSelectedScenario('');
+      setIsPreparing(false);
     }, []);
 
     const handleScenarioChange = useCallback((value: string) => {
       setSelectedScenario(value);
       setShowResults(false);
       setVisibleCards(0);
+      setIsPreparing(false);
     }, []);
 
     const totalImpact = useMemo(() => 
@@ -365,15 +383,53 @@ export const ScenarioImpactVisualiser = memo(forwardRef<ScenarioImpactVisualiser
     );
 
     return (
-      <Card id={id} className="bg-card shadow-card rounded-lg transition-all duration-300 hover:shadow-card-hover">
-      <CardHeader className="pb-4 px-4 sm:px-6">
-        <CardTitle className="text-lg sm:text-xl font-bold text-foreground">
-          Scenario Impact Visualiser
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4 sm:space-y-6 px-4 sm:px-6">
-        {/* Controls Row */}
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center" data-tour="scenario-selector">
+      <Card 
+        id={id} 
+        className={`bg-card shadow-card rounded-lg transition-all duration-500 hover:shadow-card-hover relative ${
+          isHighlighted ? 'ring-4 ring-[hsl(var(--nhs-blue))]/30 shadow-lg shadow-[hsl(var(--nhs-blue))]/20' : ''
+        }`}
+      >
+        {/* Highlight glow overlay */}
+        <AnimatePresence>
+          {isHighlighted && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="absolute inset-0 rounded-lg pointer-events-none bg-gradient-to-b from-[hsl(var(--nhs-blue))]/10 to-transparent"
+            />
+          )}
+        </AnimatePresence>
+
+        <CardHeader className="pb-4 px-4 sm:px-6">
+          <CardTitle className="text-lg sm:text-xl font-bold text-foreground">
+            Scenario Impact Visualiser
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4 sm:space-y-6 px-4 sm:px-6">
+          {/* Execution Progress Banner */}
+          <AnimatePresence>
+            {isPreparing && currentScenario && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+                className="overflow-hidden"
+              >
+                <div className="flex items-center gap-3 p-4 bg-[#E3F2FD] rounded-lg border border-[hsl(var(--nhs-blue))]/20">
+                  <div className="animate-spin h-5 w-5 border-2 border-[hsl(var(--nhs-blue))] border-t-transparent rounded-full" />
+                  <span className="text-sm font-medium text-[hsl(var(--nhs-dark-blue))]">
+                    🔄 Executing scenario: <span className="font-semibold">{currentScenario.name}</span>
+                  </span>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Controls Row */}
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center" data-tour="scenario-selector">
           <div className="flex-1 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
             <Select
               value={selectedScenario}

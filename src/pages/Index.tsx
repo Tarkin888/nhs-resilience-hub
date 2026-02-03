@@ -42,10 +42,14 @@ const SectionSkeleton = () => (
 const Index = () => {
   const [isMethodologyOpen, setIsMethodologyOpen] = useState(false);
   const [isDataSourcesOpen, setIsDataSourcesOpen] = useState(false);
+  const [runningScenarioId, setRunningScenarioId] = useState<string | null>(null);
   const visualiserRef = useRef<ScenarioImpactVisualiserRef>(null);
 
   // Handle scenario run from ScenarioLibrary
   const handleRunScenario = useCallback((scenario: EnhancedScenario) => {
+    // Set the running scenario ID for loading state
+    setRunningScenarioId(scenario.id);
+    
     // Scroll to visualiser section
     const visualiserElement = document.getElementById('scenario-impact-visualiser');
     if (visualiserElement) {
@@ -56,6 +60,11 @@ const Index = () => {
     setTimeout(() => {
       visualiserRef.current?.runScenarioById(scenario.id);
     }, 300);
+  }, []);
+
+  // Handle execution end
+  const handleExecutionEnd = useCallback(() => {
+    setRunningScenarioId(null);
   }, []);
 
   return (
@@ -104,14 +113,18 @@ const Index = () => {
 
         {/* Scenario Testing Library - Full width, between Essential Services and Impact Visualiser */}
         <section className="mt-8 mb-8">
-          <ScenarioLibrary onRunScenario={handleRunScenario} />
+          <ScenarioLibrary 
+            onRunScenario={handleRunScenario} 
+            runningScenarioId={runningScenarioId}
+          />
         </section>
 
         {/* Scenario Impact Visualiser - 32px margin top, full width */}
         <section className="mt-8">
           <ScenarioImpactVisualiser 
             ref={visualiserRef} 
-            id="scenario-impact-visualiser" 
+            id="scenario-impact-visualiser"
+            onExecutionEnd={handleExecutionEnd}
           />
         </section>
 
