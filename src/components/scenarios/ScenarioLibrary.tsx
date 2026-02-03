@@ -82,11 +82,14 @@ export const ScenarioLibrary = memo(function ScenarioLibrary({ onRunScenario, ru
       <CardHeader className="pb-4 px-4 sm:px-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <CardTitle className="text-lg sm:text-xl font-bold text-foreground">
-              Scenario Testing Library
-            </CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">
-              Select and run resilience scenarios to test organizational readiness
+            <div className="flex items-center gap-2">
+              <span className="text-lg" aria-hidden="true">📋</span>
+              <CardTitle className="text-lg sm:text-xl font-bold text-foreground">
+                Scenario Testing Library
+              </CardTitle>
+            </div>
+            <p className="text-sm text-muted-foreground mt-1.5 max-w-md">
+              Browse all available scenarios. Click <span className="font-medium text-foreground">"Run Scenario"</span> to execute and see impact analysis below.
             </p>
           </div>
           
