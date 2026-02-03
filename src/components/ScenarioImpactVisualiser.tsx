@@ -283,11 +283,13 @@ const scenarios: Scenario[] = [
   },
 ];
 
+// Display state machine: idle | loading | displaying
+type DisplayState = 'idle' | 'loading' | 'displaying';
+
 export const ScenarioImpactVisualiser = memo(forwardRef<ScenarioImpactVisualiserRef, ScenarioImpactVisualiserProps>(
   function ScenarioImpactVisualiser({ id, onExecutionStart, onExecutionEnd }, ref) {
     const [selectedScenario, setSelectedScenario] = useState<string>('');
-    const [isRunning, setIsRunning] = useState(false);
-    const [showResults, setShowResults] = useState(false);
+    const [displayState, setDisplayState] = useState<DisplayState>('idle');
     const [visibleCards, setVisibleCards] = useState<number>(0);
     const [isPreparing, setIsPreparing] = useState(false);
     const [isHighlighted, setIsHighlighted] = useState(false);
@@ -297,26 +299,32 @@ export const ScenarioImpactVisualiser = memo(forwardRef<ScenarioImpactVisualiser
       [selectedScenario]
     );
 
+    const isRunning = displayState === 'loading';
+    const showResults = displayState === 'displaying';
+
     const runScenario = useCallback(() => {
       if (!selectedScenario || !currentScenario) return;
 
       setIsPreparing(false);
-      setIsRunning(true);
-      setShowResults(true);
+      setDisplayState('loading');
       setVisibleCards(0);
 
-      // Animate cards appearing sequentially
-      const totalCards = currentScenario.impacts.length;
-      for (let i = 0; i < totalCards; i++) {
-        setTimeout(() => {
-          setVisibleCards((prev) => prev + 1);
-        }, (i + 1) * 500);
-      }
-
+      // Brief loading state before showing results
       setTimeout(() => {
-        setIsRunning(false);
-        onExecutionEnd?.();
-      }, totalCards * 500 + 500);
+        setDisplayState('displaying');
+        
+        // Animate cards appearing sequentially
+        const totalCards = currentScenario.impacts.length;
+        for (let i = 0; i < totalCards; i++) {
+          setTimeout(() => {
+            setVisibleCards((prev) => prev + 1);
+          }, (i + 1) * 500);
+        }
+
+        setTimeout(() => {
+          onExecutionEnd?.();
+        }, totalCards * 500 + 500);
+      }, 400);
     }, [selectedScenario, currentScenario, onExecutionEnd]);
 
     // External trigger to run a scenario by ID (from ScenarioLibrary)
@@ -337,7 +345,7 @@ export const ScenarioImpactVisualiser = memo(forwardRef<ScenarioImpactVisualiser
       onExecutionStart?.();
 
       // Reset state and set the scenario
-      setShowResults(false);
+      setDisplayState('idle');
       setVisibleCards(0);
       setSelectedScenario(visualiserScenarioId);
 
@@ -354,17 +362,17 @@ export const ScenarioImpactVisualiser = memo(forwardRef<ScenarioImpactVisualiser
 
     // Auto-run when selectedScenario changes from external trigger
     useEffect(() => {
-      if (selectedScenario && !showResults && !isRunning && isPreparing) {
+      if (selectedScenario && displayState === 'idle' && isPreparing) {
         // Delay to show the preparing banner
         const timer = setTimeout(() => {
           runScenario();
         }, 800);
         return () => clearTimeout(timer);
       }
-    }, [selectedScenario, showResults, isRunning, isPreparing, runScenario]);
+    }, [selectedScenario, displayState, isPreparing, runScenario]);
 
     const resetScenario = useCallback(() => {
-      setShowResults(false);
+      setDisplayState('idle');
       setVisibleCards(0);
       setSelectedScenario('');
       setIsPreparing(false);
@@ -372,7 +380,7 @@ export const ScenarioImpactVisualiser = memo(forwardRef<ScenarioImpactVisualiser
 
     const handleScenarioChange = useCallback((value: string) => {
       setSelectedScenario(value);
-      setShowResults(false);
+      setDisplayState('idle');
       setVisibleCards(0);
       setIsPreparing(false);
     }, []);
@@ -381,7 +389,6 @@ export const ScenarioImpactVisualiser = memo(forwardRef<ScenarioImpactVisualiser
       currentScenario?.impacts.reduce((sum, i) => sum + i.impact, 0) || 0,
       [currentScenario]
     );
-
     return (
       <Card 
         id={id} 
@@ -494,124 +501,161 @@ export const ScenarioImpactVisualiser = memo(forwardRef<ScenarioImpactVisualiser
 
         {/* Impact Display Area */}
         <div className="min-h-[250px] sm:min-h-[300px] border border-border rounded-lg p-4 sm:p-6 bg-muted/30">
-          {!showResults ? (
-            <div className="h-full flex items-center justify-center text-center">
-              <p className="text-muted-foreground text-lg max-w-md">
-                Select a scenario above to see how disruption cascades across all five
-                capitals
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {/* Impact Cards */}
-              <div className="space-y-4">
-                <AnimatePresence>
-                  {currentScenario?.impacts.map((impact, index) => {
-                    const Icon = impact.icon;
-                    const isVisible = index < visibleCards;
+          <AnimatePresence mode="wait">
+            {/* Idle State - Placeholder */}
+            {displayState === 'idle' && !selectedScenario && (
+              <motion.div
+                key="placeholder"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="h-full flex items-center justify-center text-center min-h-[200px]"
+              >
+                <p className="text-muted-foreground text-lg max-w-md">
+                  Select a scenario above to see how disruption cascades across all five
+                  capitals
+                </p>
+              </motion.div>
+            )}
 
-                    return (
-                      <div key={impact.capital}>
-                        {isVisible && (
-                          <motion.div
-                            initial={{ opacity: 0, x: -50 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.4, ease: 'easeOut' }}
-                            className="flex items-center gap-4"
-                          >
-                            {/* Impact Card */}
-                            <div
-                              className="flex-1 bg-white rounded-lg p-4 shadow-sm border-l-4 hover:shadow-md transition-shadow"
-                              style={{ borderLeftColor: impact.color }}
+            {/* Loading State */}
+            {displayState === 'loading' && (
+              <motion.div
+                key="loading"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="h-full flex flex-col items-center justify-center text-center min-h-[200px] gap-4"
+              >
+                <LoadingSpinner size="lg" className="text-[hsl(var(--nhs-blue))]" />
+                <p className="text-muted-foreground text-lg">
+                  Calculating impact cascade...
+                </p>
+              </motion.div>
+            )}
+
+            {/* Displaying State - Results */}
+            {displayState === 'displaying' && (
+              <motion.div
+                key="results"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="space-y-6"
+              >
+                {/* Impact Cards */}
+                <div className="space-y-4">
+                  <AnimatePresence>
+                    {currentScenario?.impacts.map((impact, index) => {
+                      const Icon = impact.icon;
+                      const isVisible = index < visibleCards;
+
+                      return (
+                        <div key={impact.capital}>
+                          {isVisible && (
+                            <motion.div
+                              initial={{ opacity: 0, x: -50 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ duration: 0.4, ease: 'easeOut' }}
+                              className="flex items-center gap-4"
                             >
-                              <div className="flex items-center gap-4">
-                                <div
-                                  className="w-10 h-10 rounded-full flex items-center justify-center"
-                                  style={{ backgroundColor: `${impact.color}20` }}
-                                >
-                                  <Icon
-                                    className="h-5 w-5"
-                                    style={{ color: impact.color }}
-                                  />
-                                </div>
-                                <div className="flex-1">
-                                  <div className="flex items-center justify-between">
-                                    <h4 className="font-semibold text-foreground">
-                                      {impact.capital}
-                                    </h4>
-                                    <span className="text-2xl font-bold text-[hsl(var(--status-red))]">
-                                      {impact.impact}
-                                    </span>
+                              {/* Impact Card */}
+                              <div
+                                className="flex-1 bg-white rounded-lg p-4 shadow-sm border-l-4 hover:shadow-md transition-shadow"
+                                style={{ borderLeftColor: impact.color }}
+                              >
+                                <div className="flex items-center gap-4">
+                                  <div
+                                    className="w-10 h-10 rounded-full flex items-center justify-center"
+                                    style={{ backgroundColor: `${impact.color}20` }}
+                                  >
+                                    <Icon
+                                      className="h-5 w-5"
+                                      style={{ color: impact.color }}
+                                    />
                                   </div>
-                                  <p className="text-sm text-muted-foreground mt-1">
-                                    {impact.explanation}
-                                  </p>
+                                  <div className="flex-1">
+                                    <div className="flex items-center justify-between">
+                                      <h4 className="font-semibold text-foreground">
+                                        {impact.capital}
+                                      </h4>
+                                      <span className="text-2xl font-bold text-[hsl(var(--status-red))]">
+                                        {impact.impact}
+                                      </span>
+                                    </div>
+                                    <p className="text-sm text-muted-foreground mt-1">
+                                      {impact.explanation}
+                                    </p>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
 
-                            {/* Arrow to next card */}
-                            {index < (currentScenario?.impacts.length || 0) - 1 && (
-                              <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ delay: 0.2 }}
-                                className="hidden lg:block text-muted-foreground/50"
-                              >
-                                <ArrowRight className="h-5 w-5 rotate-90" />
-                              </motion.div>
-                            )}
-                          </motion.div>
-                        )}
+                              {/* Arrow to next card */}
+                              {index < (currentScenario?.impacts.length || 0) - 1 && (
+                                <motion.div
+                                  initial={{ opacity: 0 }}
+                                  animate={{ opacity: 1 }}
+                                  transition={{ delay: 0.2 }}
+                                  className="hidden lg:block text-muted-foreground/50"
+                                >
+                                  <ArrowRight className="h-5 w-5 rotate-90" />
+                                </motion.div>
+                              )}
+                            </motion.div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </AnimatePresence>
+                </div>
+
+                {/* Total Impact Summary */}
+                <AnimatePresence>
+                  {visibleCards === currentScenario?.impacts.length && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: 0.3 }}
+                      className="pt-4 border-t border-border"
+                    >
+                      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                          <div className="p-3 rounded-full bg-[hsl(var(--status-red))]/10">
+                            <TrendingDown className="h-6 w-6 text-[hsl(var(--status-red))]" />
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">
+                              Total Resilience Impact
+                            </p>
+                            <p className="text-3xl font-bold text-[hsl(var(--status-red))]">
+                              {totalImpact} points
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-3">
+                          <Button
+                            variant="outline"
+                            onClick={resetScenario}
+                            className="gap-2"
+                          >
+                            <RotateCcw className="h-4 w-4" />
+                            Reset
+                          </Button>
+                          <Button className="bg-[hsl(var(--nhs-blue))] hover:bg-[hsl(var(--nhs-dark-blue))] text-white">
+                            View Full Analysis
+                          </Button>
+                        </div>
                       </div>
-                    );
-                  })}
+                    </motion.div>
+                  )}
                 </AnimatePresence>
-              </div>
-
-              {/* Total Impact Summary */}
-              <AnimatePresence>
-                {visibleCards === currentScenario?.impacts.length && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.3 }}
-                    className="pt-4 border-t border-border"
-                  >
-                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                      <div className="flex items-center gap-3">
-                        <div className="p-3 rounded-full bg-[hsl(var(--status-red))]/10">
-                          <TrendingDown className="h-6 w-6 text-[hsl(var(--status-red))]" />
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">
-                            Total Resilience Impact
-                          </p>
-                          <p className="text-3xl font-bold text-[hsl(var(--status-red))]">
-                            {totalImpact} points
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-3">
-                        <Button
-                          variant="outline"
-                          onClick={resetScenario}
-                          className="gap-2"
-                        >
-                          <RotateCcw className="h-4 w-4" />
-                          Reset
-                        </Button>
-                        <Button className="bg-[hsl(var(--nhs-blue))] hover:bg-[hsl(var(--nhs-dark-blue))] text-white">
-                          View Full Analysis
-                        </Button>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </CardContent>
     </Card>
