@@ -1,4 +1,4 @@
-import { useState, memo } from 'react';
+import { useState, memo, useRef, useCallback } from 'react';
 import DemoBanner from '@/components/common/DemoBanner';
 import DataSourceLegend from '@/components/common/DataSourceLegend';
 import Header from '@/components/Header';
@@ -6,7 +6,7 @@ import QuickStatsBar from '@/components/QuickStatsBar';
 import FiveCapitalsDisplay from '@/components/FiveCapitalsDisplay';
 import LiveRiskAlerts from '@/components/LiveRiskAlerts';
 import EssentialServicesPanel from '@/components/EssentialServicesPanel';
-import { ScenarioImpactVisualiser } from '@/components/ScenarioImpactVisualiser';
+import { ScenarioImpactVisualiser, ScenarioImpactVisualiserRef } from '@/components/ScenarioImpactVisualiser';
 import { ScenarioLibrary } from '@/components/scenarios/ScenarioLibrary';
 import CapitalCard from '@/components/CapitalCard';
 import DataSourcesModal from '@/components/DataSourcesModal';
@@ -16,13 +16,12 @@ import StatusFooter from '@/components/StatusFooter';
 // import CapitalDependenciesNetwork from '@/components/dashboard/CapitalDependenciesNetwork';
 import { Skeleton } from '@/components/ui/skeleton';
 import { capitals, alerts, essentialServices } from '@/lib/data';
+import type { EnhancedScenario } from '@/lib/scenarioLibraryData';
 
 // Memoized section components for performance
 const MemoizedFiveCapitalsDisplay = memo(FiveCapitalsDisplay);
 const MemoizedLiveRiskAlerts = memo(LiveRiskAlerts);
 const MemoizedEssentialServicesPanel = memo(EssentialServicesPanel);
-const MemoizedScenarioImpactVisualiser = memo(ScenarioImpactVisualiser);
-const MemoizedScenarioLibrary = memo(ScenarioLibrary);
 const MemoizedCapitalCard = memo(CapitalCard);
 const MemoizedAIRiskPredictionSection = memo(AIRiskPredictionSection);
 const MemoizedStatusFooter = memo(StatusFooter);
@@ -43,6 +42,21 @@ const SectionSkeleton = () => (
 const Index = () => {
   const [isMethodologyOpen, setIsMethodologyOpen] = useState(false);
   const [isDataSourcesOpen, setIsDataSourcesOpen] = useState(false);
+  const visualiserRef = useRef<ScenarioImpactVisualiserRef>(null);
+
+  // Handle scenario run from ScenarioLibrary
+  const handleRunScenario = useCallback((scenario: EnhancedScenario) => {
+    // Scroll to visualiser section
+    const visualiserElement = document.getElementById('scenario-impact-visualiser');
+    if (visualiserElement) {
+      visualiserElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    
+    // Trigger the scenario in the visualiser after a short delay for scroll
+    setTimeout(() => {
+      visualiserRef.current?.runScenarioById(scenario.id);
+    }, 300);
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -90,12 +104,15 @@ const Index = () => {
 
         {/* Scenario Testing Library - Full width, between Essential Services and Impact Visualiser */}
         <section className="mt-8 mb-8">
-          <MemoizedScenarioLibrary />
+          <ScenarioLibrary onRunScenario={handleRunScenario} />
         </section>
 
         {/* Scenario Impact Visualiser - 32px margin top, full width */}
         <section className="mt-8">
-          <MemoizedScenarioImpactVisualiser />
+          <ScenarioImpactVisualiser 
+            ref={visualiserRef} 
+            id="scenario-impact-visualiser" 
+          />
         </section>
 
         {/* Capital Cards Section */}
