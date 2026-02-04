@@ -31,12 +31,18 @@ function IntegratedScenarioTesting() {
   const handleRunScenario = (scenario: EnhancedScenario) => {
     setRunningScenarioId(scenario.id);
     
-    const visualiserElement = document.getElementById('scenario-impact-visualiser');
-    visualiserElement?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // First trigger execution (updates dropdown immediately)
+    visualiserRef.current?.runScenarioById(scenario.id);
     
-    setTimeout(() => {
-      visualiserRef.current?.runScenarioById(scenario.id);
-    }, 100);
+    // Then scroll to visualiser with offset (matches Index.tsx implementation)
+    requestAnimationFrame(() => {
+      const visualiserElement = document.getElementById('scenario-impact-visualiser');
+      if (visualiserElement) {
+        const yOffset = -80;
+        const y = visualiserElement.getBoundingClientRect().top + window.scrollY + yOffset;
+        window.scrollTo({ top: y, behavior: 'smooth' });
+      }
+    });
   };
 
   const handleExecutionEnd = () => {

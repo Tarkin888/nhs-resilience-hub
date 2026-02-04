@@ -50,16 +50,19 @@ const Index = () => {
     // Set the running scenario ID for loading state
     setRunningScenarioId(scenario.id);
     
-    // Scroll to visualiser section
-    const visualiserElement = document.getElementById('scenario-impact-visualiser');
-    if (visualiserElement) {
-      visualiserElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    // First trigger the scenario execution in the visualiser (updates dropdown immediately)
+    visualiserRef.current?.runScenarioById(scenario.id);
     
-    // Trigger the scenario in the visualiser after a short delay for scroll
-    setTimeout(() => {
-      visualiserRef.current?.runScenarioById(scenario.id);
-    }, 300);
+    // Then scroll to visualiser section with a slight delay to ensure the UI updates first
+    requestAnimationFrame(() => {
+      const visualiserElement = document.getElementById('scenario-impact-visualiser');
+      if (visualiserElement) {
+        // Use a small offset to account for sticky header
+        const yOffset = -80;
+        const y = visualiserElement.getBoundingClientRect().top + window.scrollY + yOffset;
+        window.scrollTo({ top: y, behavior: 'smooth' });
+      }
+    });
   }, []);
 
   // Handle execution end
