@@ -165,10 +165,10 @@ const CapitalScoreCircle = memo(({ capital, index, onClick, dataTourId }: Capita
           {/* Score in center */}
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <div className="flex items-baseline">
-              <span className="text-2xl md:text-4xl font-bold text-foreground">
+              <span className="text-xl md:text-2xl font-bold text-foreground">
                 {animatedScore}
               </span>
-              <span className="text-base md:text-xl text-muted-foreground">/100</span>
+              <span className="text-xs md:text-sm text-muted-foreground">/100</span>
             </div>
           </div>
 
