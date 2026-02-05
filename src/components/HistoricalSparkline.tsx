@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import { CapitalHistoryPoint } from '@/lib/capitalHistoryData';
+import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
@@ -38,6 +39,53 @@ const getTrendColorClass = (trend: TrendDirection): string => {
   }
 };
 
+const getMiniChartColor = (trend: TrendDirection): string => {
+  switch (trend) {
+    case 'declining':
+      return '#DC2626';
+    case 'improving':
+      return '#10B981';
+    case 'stable':
+    default:
+      return '#9CA3AF';
+  }
+};
+
+const getTrendArrow = (trend: TrendDirection): string => {
+  switch (trend) {
+    case 'declining':
+      return '↘';
+    case 'improving':
+      return '↗';
+    case 'stable':
+    default:
+      return '→';
+  }
+};
+
+// Generate SVG path for mini sparkline chart
+const generateSparklinePath = (points: number[]): string => {
+  if (points.length < 2) return '';
+  
+  const width = 24;
+  const height = 10;
+  const padding = 1;
+  
+  const min = Math.min(...points);
+  const max = Math.max(...points);
+  const range = max - min || 1;
+  
+  const xStep = (width - padding * 2) / (points.length - 1);
+  
+  const pathPoints = points.map((point, index) => {
+    const x = padding + index * xStep;
+    const y = height - padding - ((point - min) / range) * (height - padding * 2);
+    return `${x},${y}`;
+  });
+  
+  return `M ${pathPoints.join(' L ')}`;
+};
+
 const formatSparkline = (historyPoints: CapitalHistoryPoint[]): string => {
   return historyPoints
     .slice(-4) // Take last 4 points
@@ -50,20 +98,46 @@ const HistoricalSparkline = memo(({ history, className }: HistoricalSparklinePro
 
   const trend = getTrendDirection(history);
   const colorClass = getTrendColorClass(trend);
+  const chartColor = getMiniChartColor(trend);
+  const trendArrow = getTrendArrow(trend);
   const sparklineText = formatSparkline(history);
+  const scores = history.slice(-4).map(h => h.score);
+  const sparklinePath = generateSparklinePath(scores);
 
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <div
           className={cn(
-            'text-[10px] md:text-[11px] font-normal cursor-help transition-opacity hover:opacity-80',
+            'flex items-center gap-1.5 text-[10px] md:text-[11px] font-medium cursor-help transition-opacity hover:opacity-80',
             colorClass,
             className
           )}
           aria-label={`Historical trend: ${sparklineText}, trend is ${trend}`}
         >
-          {sparklineText}
+          {/* Mini sparkline chart */}
+          <svg 
+            width="24" 
+            height="10" 
+            viewBox="0 0 24 10" 
+            className="flex-shrink-0"
+            aria-hidden="true"
+          >
+            <path
+              d={sparklinePath}
+              fill="none"
+              stroke={chartColor}
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          
+          {/* Trend arrow and scores */}
+          <span>
+            <span className="mr-0.5">{trendArrow}</span>
+            {sparklineText}
+          </span>
         </div>
       </TooltipTrigger>
       <TooltipContent
