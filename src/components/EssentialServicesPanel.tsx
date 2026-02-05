@@ -25,6 +25,11 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 
 interface EssentialServicesPanelProps {
   services: EssentialService[];
@@ -233,48 +238,49 @@ const EssentialServicesPanel = memo(({ services }: EssentialServicesPanelProps) 
           <h2 id="essential-services-heading" className="text-lg sm:text-xl font-bold text-foreground">
             Essential Services Status
           </h2>
-          <Tooltip>
-            <TooltipTrigger asChild>
+          <Popover>
+            <PopoverTrigger asChild>
               <button 
-                className="w-5 h-5 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
+                className="w-6 h-6 rounded-full bg-muted flex items-center justify-center hover:bg-primary/10 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
                 aria-label="Learn about impact tolerances"
               >
-                <Info className="h-3.5 w-3.5 text-muted-foreground" />
+                <Info className="h-4 w-4 text-muted-foreground hover:text-primary" />
               </button>
-            </TooltipTrigger>
-            <TooltipContent 
+            </PopoverTrigger>
+            <PopoverContent 
               side="bottom" 
               align="start"
-              className="max-w-xs p-4 bg-[hsl(var(--tooltip-dark))] text-[hsl(var(--tooltip-dark-foreground))] border-0"
+              className="w-80 p-4 z-[9999]"
+              sideOffset={8}
             >
-              <div className="space-y-2 text-sm">
-                <p className="font-semibold">Impact Tolerance:</p>
-                <p className="text-xs text-muted-foreground">
+              <div className="space-y-3 text-sm">
+                <p className="font-semibold text-foreground">Impact Tolerance:</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
                   Maximum acceptable disruption before serious harm occurs. For example:
                 </p>
-                <ul className="text-xs space-y-1 ml-2">
-                  <li className="flex items-start gap-1.5">
-                    <span className="text-success mt-0.5">●</span>
-                    <span><strong>85-95%</strong> meeting 4hr standard = Degraded Service</span>
+                <ul className="text-xs space-y-2">
+                  <li className="flex items-start gap-2">
+                    <span className="text-success mt-0.5 text-base">●</span>
+                    <span className="text-foreground"><strong>85-95%</strong> meeting 4hr standard = Degraded Service</span>
                   </li>
-                  <li className="flex items-start gap-1.5">
-                    <span className="text-warning mt-0.5">●</span>
-                    <span><strong>Below 85%</strong> = Minimum Viable Service (serious harm risk)</span>
+                  <li className="flex items-start gap-2">
+                    <span className="text-warning mt-0.5 text-base">●</span>
+                    <span className="text-foreground"><strong>Below 85%</strong> = Minimum Viable Service (serious harm risk)</span>
                   </li>
-                  <li className="flex items-start gap-1.5">
-                    <span className="text-destructive mt-0.5">●</span>
-                    <span><strong>Below 75%</strong> = Service Failure (Board escalation)</span>
+                  <li className="flex items-start gap-2">
+                    <span className="text-destructive mt-0.5 text-base">●</span>
+                    <span className="text-foreground"><strong>Below 75%</strong> = Service Failure (Board escalation)</span>
                   </li>
                 </ul>
                 <a 
                   href="/services" 
-                  className="text-xs text-primary hover:underline flex items-center gap-1 mt-2"
+                  className="text-xs text-primary hover:underline flex items-center gap-1 pt-2 border-t border-border mt-3"
                 >
                   View full impact tolerance framework →
                 </a>
               </div>
-            </TooltipContent>
-          </Tooltip>
+            </PopoverContent>
+          </Popover>
         </div>
 
         {/* Status Summary Badges */}
