@@ -26,7 +26,7 @@ const Header = ({
             {/* Left: Title and Nav */}
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
               <Link to="/" className="group">
-                <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-primary group-hover:text-primary/80 transition-colors">NHS Trust Resilience Command Centre Version 1.00</h1>
+                <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-primary group-hover:text-primary/80 transition-colors">NHS Trust Resilience Command Centre Version 1.01</h1>
                 <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
                   St. Mary's NHS Foundation Trust
                 </p>
