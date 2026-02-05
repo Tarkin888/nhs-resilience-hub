@@ -3,6 +3,7 @@ import { Calendar, TrendingUp, TrendingDown, Minus, ChevronRight, AlertTriangle 
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 import type { AIPrediction, Severity, Trend, Confidence, ImpactType } from '@/lib/aiPredictionsData';
 
 interface AIPredictionCardProps {
@@ -131,8 +132,10 @@ const AIPredictionCard = memo(({ prediction, index }: AIPredictionCardProps) => 
   }, [prediction.probability, index]);
 
   const handleCreateActionPlan = () => {
-    console.log(`Create Action Plan clicked for: ${prediction.title}`);
-    // Future: Open action plan modal or navigate to action planning page
+    toast.info('Action planning feature coming soon', {
+      description: `Action plan for "${prediction.title}" will be available in a future update.`,
+      duration: 4000
+    });
   };
 
   return (
