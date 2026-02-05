@@ -4,6 +4,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { Info, TrendingUp, TrendingDown, Minus, Coins, Building2, Users, Award, Leaf, LucideIcon } from 'lucide-react';
 import { Capital } from '@/types';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 import {
   Tooltip,
   TooltipContent,
@@ -65,6 +66,18 @@ const CapitalScoreCircle = memo(({ capital, index, onClick, dataTourId }: Capita
     return 'Red';
   }, []);
 
+  const getStatusBadgeText = useCallback((score: number) => {
+    if (score >= 80) return 'Good';
+    if (score >= 60) return 'Amber';
+    return 'At Risk';
+  }, []);
+
+  const getStatusBadgeClass = useCallback((score: number) => {
+    if (score >= 80) return 'bg-success/15 text-success border-success/30 hover:bg-success/20';
+    if (score >= 60) return 'bg-amber-100 text-amber-700 border-amber-300 hover:bg-amber-100';
+    return 'bg-destructive/15 text-destructive border-destructive/30 hover:bg-destructive/20';
+  }, []);
+
   const getTrendIcon = useCallback(() => {
     switch (capital.trend) {
       case 'improving':
@@ -115,6 +128,17 @@ const CapitalScoreCircle = memo(({ capital, index, onClick, dataTourId }: Capita
       className="flex flex-col items-center"
       data-tour={dataTourId}
     >
+      {/* Status Badge */}
+      <Badge 
+        variant="outline"
+        className={cn(
+          'mb-2 text-[10px] md:text-xs font-semibold px-2 py-0.5',
+          getStatusBadgeClass(capital.score)
+        )}
+      >
+        {getStatusBadgeText(capital.score)}
+      </Badge>
+
       <div
         className={cn(
           'relative cursor-pointer transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-xl p-2',
@@ -261,6 +285,14 @@ const CapitalScoreCircle = memo(({ capital, index, onClick, dataTourId }: Capita
         <div className="mt-1">
           <HistoricalSparkline history={history} className="text-center" />
         </div>
+
+        {/* Click for details text */}
+        <p className={cn(
+          'mt-1.5 text-[10px] md:text-xs text-primary font-medium transition-colors',
+          isHovered && 'text-primary/80 underline'
+        )}>
+          Click for details
+        </p>
       </div>
     </motion.div>
   );
