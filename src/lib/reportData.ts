@@ -213,7 +213,7 @@ export function collectReportData(
         value: kri.currentValue,
         target: kri.target,
         status: kri.trend === 'improving' ? 'Green' : kri.trend === 'declining' ? 'Red' : 'Amber',
-        trend: kri.trend === 'improving' ? '↑' : kri.trend === 'declining' ? '↓' : '→'
+        trend: kri.trend === 'improving' ? 'Improving' : kri.trend === 'declining' ? 'Declining' : 'Stable'
       })) || [],
       recentChanges: details?.recentChanges.map(rc => 
         `${format(rc.date, 'dd MMM yyyy')}: ${rc.description}`
