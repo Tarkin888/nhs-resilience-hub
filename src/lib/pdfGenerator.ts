@@ -39,23 +39,46 @@ export async function generatePDF(
 
   // Helper function to add header and footer
   const addHeaderFooter = (pageNum: number, totalPages: number) => {
-    // Header
-    doc.setFontSize(10);
-    doc.setTextColor(...NHS_BLUE);
-    doc.text("St. Mary's NHS Foundation Trust", margin, 15);
-    doc.text('Resilience Board Report', margin, 20);
+    if (pageNum === 1) {
+      // Prominent Page 1 Header - NHS professional styling
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...NHS_BLUE);
+      doc.setFontSize(12);
+      doc.text("St. Mary's NHS Foundation Trust", margin, 18);
+      
+      doc.setFontSize(24);
+      doc.text('Resilience Board Report', margin, 30);
+      
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.setTextColor(...TEXT_GREY);
+      doc.text(`Reporting Period: ${reportData.period}`, margin, 40);
+      doc.text(`Generated: ${reportData.generatedDate}`, pageWidth - margin, 40, { align: 'right' });
+      
+      // Thick header line for page 1
+      doc.setDrawColor(...NHS_BLUE);
+      doc.setLineWidth(1);
+      doc.line(margin, 45, pageWidth - margin, 45);
+    } else {
+      // Compact header for subsequent pages
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.setTextColor(...NHS_BLUE);
+      doc.text('Resilience Board Report', margin, 15);
+      
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(...TEXT_GREY);
+      doc.text("St. Mary's NHS Foundation Trust", pageWidth - margin, 15, { align: 'right' });
+      
+      // Thin header line for other pages
+      doc.setDrawColor(...NHS_BLUE);
+      doc.setLineWidth(0.5);
+      doc.line(margin, 18, pageWidth - margin, 18);
+    }
     
-    doc.setFontSize(8);
-    doc.setTextColor(...TEXT_GREY);
-    doc.text(`Report Period: ${reportData.period}`, margin, 25);
-    doc.text(`Generated: ${reportData.generatedDate}`, margin, 29);
-    
-    // Header line
-    doc.setDrawColor(...NHS_BLUE);
-    doc.setLineWidth(0.5);
-    doc.line(margin, 32, pageWidth - margin, 32);
-    
-    // Footer
+    // Footer (same for all pages)
+    doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
     doc.setTextColor(...TEXT_GREY);
     doc.text('Confidential - Board Use Only', margin, pageHeight - 10);
@@ -72,7 +95,7 @@ export async function generatePDF(
     return currentY;
   };
 
-  let currentY = 40;
+  let currentY = 52; // Start below page 1 header (which ends at y=45)
   let progress = 0;
 
   // Add demo disclaimer if selected
