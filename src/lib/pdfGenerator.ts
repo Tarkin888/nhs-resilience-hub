@@ -168,7 +168,7 @@ export async function generatePDF(
         c.name,
         `${c.score}/100`,
         c.status,
-        c.trend === 'Improving' ? '↑ Improving' : c.trend === 'Declining' ? '↓ Declining' : '→ Stable'
+        c.trend
       ]),
       theme: 'grid',
       headStyles: { fillColor: NHS_BLUE, textColor: [255, 255, 255] },
