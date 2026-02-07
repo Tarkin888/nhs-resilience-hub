@@ -196,10 +196,10 @@ const CapitalScoreCircle = memo(({ capital, index, onClick, dataTourId }: Capita
             </div>
           </div>
 
-          {/* DEMO badge in top-right */}
+          {/* View Details button in top-right */}
           <div className="absolute -top-1 -right-8 md:-right-10">
-            <span className="text-[8px] md:text-[9px] font-bold tracking-wider bg-demo text-primary px-1.5 py-0.5 rounded border border-primary/30">
-              DEMO
+            <span className="text-[8px] md:text-[9px] font-semibold tracking-wide bg-primary/10 text-primary px-1.5 py-0.5 rounded border border-primary/30 hover:bg-primary/20 transition-colors">
+              View Details
             </span>
           </div>
 
@@ -285,14 +285,6 @@ const CapitalScoreCircle = memo(({ capital, index, onClick, dataTourId }: Capita
         <div className="mt-1">
           <HistoricalSparkline history={history} className="text-center" />
         </div>
-
-        {/* Click for details text */}
-        <p className={cn(
-          'mt-1.5 text-[10px] md:text-xs text-primary font-medium transition-colors',
-          isHovered && 'text-primary/80 underline'
-        )}>
-          Click for details
-        </p>
       </div>
     </motion.div>
   );
