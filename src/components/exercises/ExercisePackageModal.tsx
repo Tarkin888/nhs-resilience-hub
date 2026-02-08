@@ -9,7 +9,9 @@ import {
   FileText, 
   CheckSquare, 
   MessageSquare,
-  ChevronRight
+  ChevronRight,
+  Calendar,
+  Loader2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -20,6 +22,9 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ExercisePackage } from '@/types/exercises';
 import { cn } from '@/lib/utils';
+import { generateExercisePDF } from '@/lib/exercisePdfGenerator';
+import { toast } from 'sonner';
+import ScheduleExerciseModal from './ScheduleExerciseModal';
 
 interface ExercisePackageModalProps {
   exercisePackage: ExercisePackage | null;
@@ -28,10 +33,30 @@ interface ExercisePackageModalProps {
 
 const ExercisePackageModal = ({ exercisePackage, onClose }: ExercisePackageModalProps) => {
   const [activeTab, setActiveTab] = useState('plan');
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
 
   if (!exercisePackage) return null;
 
   const { exercise, injects, evaluationCriteria, debriefQuestions } = exercisePackage;
+
+  const handleDownloadPDF = async () => {
+    setIsDownloading(true);
+    try {
+      await generateExercisePDF(exercisePackage);
+      toast.success('PDF downloaded successfully');
+    } catch (error) {
+      console.error('PDF generation error:', error);
+      toast.error('Failed to generate PDF');
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  const handleScheduleSuccess = () => {
+    setIsScheduleModalOpen(false);
+  };
+
 
   const getTypeBadge = (type: 'desktop' | 'live' | 'simulation') => {
     const config = {
@@ -91,9 +116,26 @@ const ExercisePackageModal = ({ exercisePackage, onClose }: ExercisePackageModal
             </div>
             
             <div className="flex items-center gap-2">
-              <Button variant="outline" className="gap-2">
-                <Download className="h-4 w-4" />
-                Download PDF
+              <Button 
+                variant="outline" 
+                className="gap-2"
+                onClick={() => setIsScheduleModalOpen(true)}
+              >
+                <Calendar className="h-4 w-4" />
+                <span className="hidden sm:inline">Schedule</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="gap-2"
+                onClick={handleDownloadPDF}
+                disabled={isDownloading}
+              >
+                {isDownloading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="h-4 w-4" />
+                )}
+                <span className="hidden sm:inline">Download PDF</span>
               </Button>
               <Button variant="ghost" size="icon" onClick={onClose}>
                 <X className="h-5 w-5" />
@@ -340,6 +382,15 @@ const ExercisePackageModal = ({ exercisePackage, onClose }: ExercisePackageModal
           </Tabs>
         </motion.div>
       </motion.div>
+
+      {/* Schedule Modal */}
+      {isScheduleModalOpen && (
+        <ScheduleExerciseModal
+          exercisePackage={exercisePackage}
+          onClose={() => setIsScheduleModalOpen(false)}
+          onScheduled={handleScheduleSuccess}
+        />
+      )}
     </AnimatePresence>
   );
 };
