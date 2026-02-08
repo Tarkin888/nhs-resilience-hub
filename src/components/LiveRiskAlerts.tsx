@@ -28,13 +28,12 @@ const AlertCard = memo(({ alert, index, formatTimestamp, onViewDetails }: {
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.3, delay: index * 0.1 }}
       className={cn(
-        'flex flex-col sm:flex-row items-start gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg border-l-4 bg-background transition-all duration-300 hover:shadow-card-hover cursor-pointer',
+        'flex flex-col sm:flex-row items-start gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg border-l-4 bg-background transition-all duration-300',
         isRed && 'border-l-destructive',
         isAmber && 'border-l-warning'
       )}
       role="article"
       aria-label={`${isRed ? 'Critical' : 'Warning'} alert: ${alert.title}`}
-      onClick={handleClick}
     >
       {/* Severity Icon */}
       <motion.div
@@ -77,10 +76,7 @@ const AlertCard = memo(({ alert, index, formatTimestamp, onViewDetails }: {
         variant="ghost"
         size="sm"
         className="flex-shrink-0 text-xs text-muted-foreground hover:text-foreground self-start sm:self-center focus:ring-2 focus:ring-primary focus:ring-offset-2"
-        onClick={(e) => {
-          e.stopPropagation();
-          handleClick();
-        }}
+        onClick={handleClick}
         aria-label={`View alert details: ${alert.title}`}
       >
         <span className="hidden sm:inline">View Alert</span>
