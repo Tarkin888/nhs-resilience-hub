@@ -575,7 +575,7 @@ export const ScenarioImpactVisualiser = memo(forwardRef<ScenarioImpactVisualiser
                               >
                                 <div className="flex items-center gap-4">
                                   <div
-                                    className="w-10 h-10 rounded-full flex items-center justify-center"
+                                    className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
                                     style={{ backgroundColor: `${impact.color}20` }}
                                   >
                                     <Icon
@@ -583,18 +583,30 @@ export const ScenarioImpactVisualiser = memo(forwardRef<ScenarioImpactVisualiser
                                       style={{ color: impact.color }}
                                     />
                                   </div>
-                                  <div className="flex-1">
-                                    <div className="flex items-center justify-between">
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center justify-between gap-2">
                                       <h4 className="font-semibold text-foreground">
                                         {impact.capital}
                                       </h4>
-                                      <span className="text-2xl font-bold text-[hsl(var(--status-red))]">
-                                        {impact.impact}
-                                      </span>
+                                      <div className="flex items-center gap-1 flex-shrink-0">
+                                        <span className="text-[hsl(var(--status-red))]">↓</span>
+                                        <span className="text-2xl font-bold text-[hsl(var(--status-red))]">
+                                          {impact.impact}
+                                        </span>
+                                      </div>
                                     </div>
                                     <p className="text-sm text-muted-foreground mt-1">
                                       {impact.explanation}
                                     </p>
+                                    {/* Impact magnitude bar */}
+                                    <div className="mt-2 h-2 bg-muted rounded-full overflow-hidden max-w-[200px]">
+                                      <motion.div
+                                        initial={{ width: 0 }}
+                                        animate={{ width: `${Math.min(Math.abs(impact.impact) * 2, 100)}%` }}
+                                        transition={{ duration: 0.5, delay: 0.2 }}
+                                        className="h-full rounded-full bg-[hsl(var(--status-red))]"
+                                      />
+                                    </div>
                                   </div>
                                 </div>
                               </div>
