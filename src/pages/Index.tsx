@@ -8,7 +8,7 @@ import LiveRiskAlerts from '@/components/LiveRiskAlerts';
 import EssentialServicesPanel from '@/components/EssentialServicesPanel';
 import { ScenarioImpactVisualiser, ScenarioImpactVisualiserRef } from '@/components/ScenarioImpactVisualiser';
 import { ScenarioLibrary } from '@/components/scenarios/ScenarioLibrary';
-import CapitalCard from '@/components/CapitalCard';
+
 import DataSourcesModal from '@/components/DataSourcesModal';
 import StatusLegend from '@/components/StatusLegend';
 import AIRiskPredictionSection from '@/components/AIRiskPredictionSection';
@@ -22,7 +22,7 @@ import type { EnhancedScenario } from '@/lib/scenarioLibraryData';
 const MemoizedFiveCapitalsDisplay = memo(FiveCapitalsDisplay);
 const MemoizedLiveRiskAlerts = memo(LiveRiskAlerts);
 const MemoizedEssentialServicesPanel = memo(EssentialServicesPanel);
-const MemoizedCapitalCard = memo(CapitalCard);
+
 const MemoizedAIRiskPredictionSection = memo(AIRiskPredictionSection);
 const MemoizedStatusFooter = memo(StatusFooter);
 // const MemoizedCapitalDependenciesNetwork = memo(CapitalDependenciesNetwork);
@@ -131,15 +131,6 @@ const Index = () => {
           />
         </section>
 
-        {/* Capital Cards Section */}
-        <section className="mt-8">
-          <h2 className="text-lg font-semibold text-foreground mb-4">Capital Details</h2>
-          <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-            {capitals.map((capital, index) => (
-              <MemoizedCapitalCard key={capital.id} capital={capital} index={index} />
-            ))}
-          </div>
-        </section>
 
         {/* AI Risk Prediction Section */}
         <MemoizedAIRiskPredictionSection />
