@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
 import { format, formatDistanceToNow } from 'date-fns';
 import { 
@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { getServiceById } from '@/lib/servicesData';
 import { cn } from '@/lib/utils';
 import DataSourcesModal from '@/components/DataSourcesModal';
+import { toast } from 'sonner';
 
 // Import service detail section components
 import ServiceDefinitionCard from '@/components/services/ServiceDefinitionCard';
@@ -124,7 +125,16 @@ const ServiceDetail = () => {
               </div>
             </div>
 
-            <Button variant="outline" className="gap-2">
+            <Button 
+              variant="outline" 
+              className="gap-2"
+              onClick={() => {
+                toast.info('Edit service feature coming soon', {
+                  description: `Editing "${service.name}" will be available in a future update.`,
+                  duration: 3000
+                });
+              }}
+            >
               <Pencil className="h-4 w-4" />
               Edit Service
             </Button>
