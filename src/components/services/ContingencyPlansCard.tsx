@@ -13,6 +13,8 @@ import {
 } from 'lucide-react';
 import { DetailedEssentialService } from '@/types/services';
 import { cn } from '@/lib/utils';
+import { generateContingencyPlanPdf } from '@/lib/contingencyPdfGenerator';
+import { toast } from 'sonner';
 
 
 interface ContingencyPlansCardProps {
@@ -23,12 +25,14 @@ const ContingencySection = ({
   title, 
   icon: Icon,
   content,
-  defaultOpen = false 
+  defaultOpen = false,
+  onDownloadPdf
 }: { 
   title: string; 
   icon: React.ElementType;
   content: string;
   defaultOpen?: boolean;
+  onDownloadPdf: () => void;
 }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
@@ -46,7 +50,7 @@ const ContingencySection = ({
             className="h-8 text-xs"
             onClick={(e) => {
               e.stopPropagation();
-              // Download functionality placeholder
+              onDownloadPdf();
             }}
           >
             <Download className="h-3 w-3 mr-1" />
@@ -131,6 +135,21 @@ const ContingencySection = ({
 };
 
 const ContingencyPlansCard = ({ service }: ContingencyPlansCardProps) => {
+  const handleDownloadPdf = (sectionTitle: string, sectionContent: string) => {
+    try {
+      generateContingencyPlanPdf(service, sectionTitle, sectionContent);
+      toast.success('PDF downloaded successfully', {
+        description: `${sectionTitle} contingency plan saved.`,
+        duration: 3000
+      });
+    } catch (error) {
+      toast.error('Failed to generate PDF', {
+        description: 'Please try again later.',
+        duration: 3000
+      });
+    }
+  };
+
   const sections = [
     {
       title: 'Service Degradation Protocols',
@@ -171,6 +190,7 @@ const ContingencyPlansCard = ({ service }: ContingencyPlansCardProps) => {
             icon={section.icon}
             content={section.content}
             defaultOpen={section.defaultOpen}
+            onDownloadPdf={() => handleDownloadPdf(section.title, section.content)}
           />
         ))}
       </CardContent>
