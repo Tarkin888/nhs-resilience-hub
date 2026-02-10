@@ -142,7 +142,7 @@ const BoardReportModal = ({ isOpen, onClose }: BoardReportModalProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-[600px] max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-w-[600px] max-h-[85vh] overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-lg">
             <FileText className="h-5 w-5 text-primary" />
