@@ -29,7 +29,7 @@ const dataSources = [
     icon: Shield,
     sources: [
       { name: 'Care Quality Commission', description: 'Inspection ratings and reports', url: 'https://www.cqc.org.uk/' },
-      { name: 'CQC Insights', description: 'Risk monitoring indicators', url: 'https://www.cqc.org.uk/guidance-providers/how-we-monitor-risk' },
+      { name: 'CQC Insights', description: 'Risk monitoring indicators', url: 'https://www.cqc.org.uk/about-us/how-we-use-information-and-data' },
     ],
   },
   {
