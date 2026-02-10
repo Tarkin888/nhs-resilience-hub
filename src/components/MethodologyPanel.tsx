@@ -90,6 +90,7 @@ const MethodologyPanel = ({ isOpen, onClose }: MethodologyPanelProps) => {
             transition={{ duration: 0.3 }}
             className="fixed inset-0 bg-black/50 z-40"
             onClick={onClose}
+            onTouchMove={(e) => e.stopPropagation()}
           />
 
           {/* Panel - slides from LEFT */}
@@ -98,11 +99,12 @@ const MethodologyPanel = ({ isOpen, onClose }: MethodologyPanelProps) => {
             animate={{ x: 0 }}
             exit={{ x: '-100%' }}
             transition={{ duration: 0.3, ease: 'easeOut' }}
-            className="fixed left-0 top-0 h-full bg-white shadow-2xl z-50 overflow-y-auto
+            className="fixed left-0 top-0 h-full bg-card shadow-2xl z-50 overflow-y-auto overscroll-contain
                        w-full md:w-[400px]"
+            style={{ WebkitOverflowScrolling: 'touch' }}
           >
             {/* Header */}
-            <div className="sticky top-0 bg-white border-b z-10 p-6">
+            <div className="sticky top-0 bg-card border-b z-10 p-6">
               <div className="flex items-start justify-between">
                 <div>
                   <h2 className="text-xl font-bold text-foreground">About This Tool</h2>
