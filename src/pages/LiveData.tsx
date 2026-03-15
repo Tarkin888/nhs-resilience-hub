@@ -196,7 +196,7 @@ export default function LiveData() {
     try {
       const { data: result, error: fnError } = await supabase.functions.invoke(
         'fetch-dm01-data',
-        { body: { providerCode: code, period: '2025-07' } }
+        { body: { providerCode: code, period: '2026-01' } }
       );
       if (fnError) throw fnError;
       if (result?.error) {
