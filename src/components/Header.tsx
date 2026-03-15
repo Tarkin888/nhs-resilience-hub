@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { HelpCircle, ClipboardList, FlaskConical, FileText } from 'lucide-react';
+import { HelpCircle, ClipboardList, FlaskConical, FileText, Radio } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import MethodologyPanel from './MethodologyPanel';
@@ -19,6 +19,7 @@ const Header = ({
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const isServicesActive = location.pathname.startsWith('/services');
   const isScenariosActive = location.pathname.startsWith('/scenarios');
+  const isLiveDataActive = location.pathname === '/live-data';
   return <>
       <header data-tour="header" className="bg-card border-b shadow-card">
         <div className="max-w-[1400px] mx-auto px-4 md:px-8 py-4 md:py-5">
@@ -49,6 +50,15 @@ const Header = ({
                   <span className="hidden sm:inline">Scenario Testing</span>
                   <span className="sm:hidden">Scenarios</span>
                   {isScenariosActive && <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-primary rounded-full" />}
+                </Link>
+                <Link to="/live-data" className={cn("relative px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 flex items-center gap-1.5", isLiveDataActive ? "text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted")}>
+                  <Radio className="h-4 w-4" />
+                  <span className="hidden sm:inline">Live Data</span>
+                  <span className="sm:hidden">Live</span>
+                  <span className="inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold rounded-full" style={{ backgroundColor: '#E8F5E9', color: '#2E7D32' }}>
+                    LIVE
+                  </span>
+                  {isLiveDataActive && <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-primary rounded-full" />}
                 </Link>
               </nav>
             </div>

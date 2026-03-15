@@ -10,6 +10,7 @@ import ServicesOverview from "./pages/ServicesOverview";
 import ServiceDetail from "./pages/ServiceDetail";
 import ExerciseLibrary from "./pages/ExerciseLibrary";
 import ExerciseResults from "./pages/ExerciseResults";
+import LiveData from "./pages/LiveData";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/services/:serviceId" element={<ServiceDetail />} />
           <Route path="/scenarios/exercises" element={<ExerciseLibrary />} />
           <Route path="/scenarios/results/:resultId" element={<ExerciseResults />} />
+          <Route path="/live-data" element={<LiveData />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/accessibility" element={<Accessibility />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
