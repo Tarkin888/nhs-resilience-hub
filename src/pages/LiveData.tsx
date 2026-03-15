@@ -177,7 +177,7 @@ export default function LiveData() {
     try {
       const { data: result, error: fnError } = await supabase.functions.invoke(
         'fetch-dm01-history',
-        { body: { providerCode, period: '2025-07' } }
+        { body: { providerCode, period: '2026-01' } }
       );
       if (fnError) throw fnError;
       if (result?.trend) setTrendData(result.trend);
