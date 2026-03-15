@@ -63,6 +63,21 @@ const getBadgeClasses = (pct: number) =>
 const fmt = (n: number) => n.toLocaleString('en-GB');
 const truncate = (s: string, max: number) => s.length > max ? s.slice(0, max) + '…' : s;
 
+interface TrendPoint {
+  period: string;
+  percent_6_plus_weeks: number;
+  total_waiting_list: number;
+  total_waiting_6_plus_weeks: number;
+  total_activity: number;
+  status: string;
+}
+
+const formatPeriodShort = (period: string) => {
+  const [y, m] = period.split('-');
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${months[parseInt(m, 10) - 1]} ${y.slice(2)}`;
+};
+
 export default function LiveData() {
   const [isMethodologyOpen, setIsMethodologyOpen] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState('R0A');
@@ -72,6 +87,24 @@ export default function LiveData() {
   const [error, setError] = useState<string | null>(null);
   const [sortKey, setSortKey] = useState<SortKey>('percent_6_plus_weeks');
   const [sortAsc, setSortAsc] = useState(false);
+  const [trendData, setTrendData] = useState<TrendPoint[]>([]);
+  const [trendLoading, setTrendLoading] = useState(false);
+
+  const fetchTrend = useCallback(async (providerCode: string) => {
+    setTrendLoading(true);
+    try {
+      const { data: result, error: fnError } = await supabase.functions.invoke(
+        'fetch-dm01-history',
+        { body: { providerCode, period: '2025-07' } }
+      );
+      if (fnError) throw fnError;
+      if (result?.trend) setTrendData(result.trend);
+    } catch (err) {
+      console.error('Failed to fetch trend data:', err);
+    } finally {
+      setTrendLoading(false);
+    }
+  }, []);
 
   const fetchData = async (providerCode?: string) => {
     const code = providerCode ?? selectedProvider;
@@ -89,6 +122,8 @@ export default function LiveData() {
       } else {
         setData(result as DM01Response);
         setLastRefreshed(new Date());
+        // Fetch trend data after main data is loaded
+        fetchTrend(code);
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to fetch data');
