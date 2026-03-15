@@ -227,7 +227,16 @@ Deno.serve(async (req) => {
       if (hasData) rows.push(row);
     }
     
-    console.log(`Using sheet: ${sheetName}, header row: ${headerRowIdx}, data rows: ${rows.length}, columns: ${headerRow.slice(0, 6).join(', ')}`);
+    console.log(`Using sheet: ${sheetName}, header row: ${headerRowIdx}, data rows: ${rows.length}, columns: ${headerRow.join(' | ')}`);
+    
+    // Debug: log first row matching the provider
+    const debugRow = rows.find(r => String(r[findCol(["provider code", "org code", "organisation code"]) ?? ""] ?? "").trim().toUpperCase() === providerCode.toUpperCase());
+    if (debugRow) {
+      console.log("First matching row keys:", Object.keys(debugRow).join(' | '));
+      console.log("First matching row values:", Object.values(debugRow).map(v => String(v).substring(0, 30)).join(' | '));
+    }
+    const matchCount = rows.filter(r => String(r[findCol(["provider code", "org code", "organisation code"]) ?? ""] ?? "").trim().toUpperCase() === providerCode.toUpperCase()).length;
+    console.log(`Total rows matching provider ${providerCode}: ${matchCount}`);
 
     if (!rows.length) {
       return new Response(
