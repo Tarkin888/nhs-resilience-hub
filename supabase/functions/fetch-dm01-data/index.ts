@@ -470,6 +470,7 @@ Deno.serve(async (req) => {
         total_waiting_6_plus_weeks: summaryWaiting6Plus,
         percent_6_plus_weeks: summaryPct,
         total_activity: summaryActivity,
+        test_count: tests.length,
         status,
       },
       tests,
