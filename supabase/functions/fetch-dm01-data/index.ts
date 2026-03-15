@@ -7,60 +7,89 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Known DM01 Provider XLS URLs by period
+// Known DM01 Provider XLS URLs by period (from NHS England 2025-26 page)
 const KNOWN_URLS: Record<string, string> = {
-  "2025-07":
-    "https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2025/09/Monthly-Diagnostics-Provider-July-2025.xls",
+  "2026-01": "https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2026/03/Monthly-Diagnostics-Web-File-Provider-January-2026_42P3N.xls",
+  "2025-12": "https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2026/02/Monthly-Diagnostics-Web-File-Provider-December-2025_EDNKH.xls",
+  "2025-11": "https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2026/01/Monthly-Diagnostics-Web-File-Provider-November-2025_8HM0N.xls",
+  "2025-10": "https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2025/12/Monthly-Diagnostics-Web-File-Provider-October-2025_F5GI8.xls",
+  "2025-09": "https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2025/11/Monthly-Diagnostics-Web-File-Provider-September-2025_M0NX3.xls",
+  "2025-08": "https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2025/10/Monthly-Diagnostics-Web-File-Provider-August-2025_EJKO9.xls",
+  "2025-07": "https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2025/09/Monthly-Diagnostics-Web-File-Provider-July-2025_L8FLO.xls",
+  "2025-06": "https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2025/08/Monthly-Diagnostics-Web-File-Provider-June-2025_45KNG.xls",
+  "2025-05": "https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2025/07/Monthly-Diagnostics-Web-File-Provider-May-2025.xls",
+  "2025-04": "https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2025/06/Monthly-Diagnostics-Web-File-Provider-April-2025_3EY67.xls",
 };
 
-const DATA_PAGE_URL =
-  "https://www.england.nhs.uk/statistics/statistical-work-areas/diagnostics-waiting-times-and-activity/monthly-diagnostics-waiting-times-and-activity/monthly-diagnostics-data-2025-26/";
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+const DATA_PAGE_URLS = [
+  "https://www.england.nhs.uk/statistics/statistical-work-areas/diagnostics-waiting-times-and-activity/monthly-diagnostics-waiting-times-and-activity/monthly-diagnostics-data-2025-26/",
+  "https://www.england.nhs.uk/statistics/statistical-work-areas/diagnostics-waiting-times-and-activity/monthly-diagnostics-waiting-times-and-activity/monthly-diagnostics-data-2024-25/",
+];
 
 /**
  * Try to discover the Provider XLS link from the NHS data page HTML.
  */
 async function discoverProviderXlsUrl(period: string): Promise<string | null> {
-  try {
-    const res = await fetch(DATA_PAGE_URL, {
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; LovableBot/1.0)" },
-    });
-    if (!res.ok) {
-      console.error("Failed to fetch data page:", res.status);
-      return null;
+  const [year, month] = period.split("-");
+  const monthName = MONTH_NAMES[parseInt(month, 10) - 1];
+  if (!monthName) return null;
+
+  for (const pageUrl of DATA_PAGE_URLS) {
+    try {
+      const res = await fetch(pageUrl, {
+        headers: { "User-Agent": "Mozilla/5.0 (compatible; LovableBot/1.0)" },
+      });
+      if (!res.ok) continue;
+      const html = await res.text();
+
+      const linkRegex =
+        /href="(https?:\/\/[^"]*(?:Monthly-Diagnostics-(?:Web-File-)?Provider)[^"]*\.xls[x]?)"/gi;
+      let match;
+      const candidates: string[] = [];
+      while ((match = linkRegex.exec(html)) !== null) {
+        candidates.push(match[1]);
+      }
+      if (candidates.length === 0) continue;
+
+      const target = candidates.find(
+        (url) =>
+          url.toLowerCase().includes(monthName.toLowerCase()) &&
+          url.includes(year)
+      );
+      if (target) return target;
+      if (candidates.length > 0) return candidates[0];
+    } catch (err) {
+      console.error("Error discovering XLS URL from", pageUrl, err);
     }
-    const html = await res.text();
-
-    // Look for links containing "Provider" and the XLS extension
-    const linkRegex =
-      /href="(https?:\/\/[^"]*Monthly-Diagnostics-Provider[^"]*\.xls[x]?)"/gi;
-    let match;
-    const candidates: string[] = [];
-    while ((match = linkRegex.exec(html)) !== null) {
-      candidates.push(match[1]);
-    }
-
-    if (candidates.length === 0) return null;
-
-    // Parse the requested period to find the matching month name
-    const [year, month] = period.split("-");
-    const monthNames = [
-      "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December",
-    ];
-    const monthName = monthNames[parseInt(month, 10) - 1];
-    if (!monthName) return null;
-
-    // Try to find a URL matching the month and year
-    const target = candidates.find(
-      (url) =>
-        url.toLowerCase().includes(monthName.toLowerCase()) &&
-        url.includes(year)
-    );
-    return target || candidates[0]; // fall back to first candidate
-  } catch (err) {
-    console.error("Error discovering XLS URL:", err);
-    return null;
   }
+  return null;
+}
+
+/**
+ * Try to fetch an XLS file from a list of URLs, returning the first successful buffer.
+ */
+async function tryFetchUrls(urls: string[]): Promise<Uint8Array | null> {
+  for (const url of urls) {
+    try {
+      console.log(`Trying URL: ${url}`);
+      const res = await fetch(url, {
+        headers: { "User-Agent": "Mozilla/5.0 (compatible; LovableBot/1.0)" },
+      });
+      if (res.ok) {
+        console.log(`Success: ${url}`);
+        return new Uint8Array(await res.arrayBuffer());
+      }
+      console.log(`Failed (${res.status}): ${url}`);
+    } catch (e) {
+      console.log(`Error fetching ${url}: ${e}`);
+    }
+  }
+  return null;
 }
 
 /**
@@ -79,57 +108,93 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { providerCode = "R0A", period = "2025-07" } = await req.json();
+    const { providerCode = "R0A", period = "2026-01" } = await req.json();
 
-    // ── 1. Resolve the XLS URL ──────────────────────────────────
-    let xlsUrl = KNOWN_URLS[period] ?? null;
-    if (!xlsUrl) {
-      xlsUrl = await discoverProviderXlsUrl(period);
-    }
-    if (!xlsUrl) {
-      return new Response(
-        JSON.stringify({ error: `No DM01 data URL found for period ${period}` }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // ── 2. Download the XLS file ────────────────────────────────
-    console.log(`Fetching XLS from ${xlsUrl}`);
-    const xlsRes = await fetch(xlsUrl, {
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; LovableBot/1.0)" },
-    });
-    if (!xlsRes.ok) {
-      // Try discovery as fallback if hardcoded URL failed
+    // ── 1. Resolve and download the XLS file ──────────────────
+    // Build a prioritised list of URLs to try
+    const urlsToTry: string[] = [];
+    
+    // First: hardcoded known URL
+    if (KNOWN_URLS[period]) urlsToTry.push(KNOWN_URLS[period]);
+    
+    // Try known URLs first (fast, no page scraping needed)
+    let buffer = await tryFetchUrls(urlsToTry);
+    
+    // Third: try discovery from HTML page as last resort
+    if (!buffer) {
       const discovered = await discoverProviderXlsUrl(period);
-      if (discovered && discovered !== xlsUrl) {
-        const retryRes = await fetch(discovered, {
-          headers: { "User-Agent": "Mozilla/5.0 (compatible; LovableBot/1.0)" },
-        });
-        if (!retryRes.ok) {
-          return new Response(
-            JSON.stringify({ error: "Could not fetch DM01 data from NHS England" }),
-            { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-        var buffer = new Uint8Array(await retryRes.arrayBuffer());
-      } else {
-        return new Response(
-          JSON.stringify({ error: "Could not fetch DM01 data from NHS England" }),
-          { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+      if (discovered) {
+        buffer = await tryFetchUrls([discovered]);
       }
-    } else {
-      var buffer = new Uint8Array(await xlsRes.arrayBuffer());
+    }
+    
+    if (!buffer) {
+      return new Response(
+        JSON.stringify({ error: "Could not fetch DM01 data from NHS England" }),
+        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     // ── 3. Parse the spreadsheet ────────────────────────────────
     const workbook = XLSX.read(buffer, { type: "array" });
-    // Use the first sheet (usually "Provider" data)
-    const sheetName = workbook.SheetNames[0];
+    
+    // Find the correct sheet - prefer one named "Provider"
+    let sheetName = workbook.SheetNames[0];
+    for (const name of workbook.SheetNames) {
+      const n = name.toLowerCase();
+      if (n.includes("provider") || n.includes("data") || n.includes("dm01")) {
+        sheetName = name;
+        break;
+      }
+    }
+    
     const sheet = workbook.Sheets[sheetName];
-    const rows: Record<string, unknown>[] = XLSX.utils.sheet_to_json(sheet, {
-      defval: 0,
-    });
+    
+    // NHS XLS files have title rows at the top before the actual data headers.
+    // We need to find the row that contains column headers like "Provider Code" etc.
+    // Convert to array-of-arrays to scan for the header row.
+    const rawRows: unknown[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
+    
+    let headerRowIdx = -1;
+    for (let i = 0; i < Math.min(rawRows.length, 30); i++) {
+      const cells = rawRows[i].map(c => norm(c));
+      // The real header row should have MANY non-empty cells and specific patterns
+      const nonEmpty = cells.filter(c => c.length > 0).length;
+      const hasProviderCode = cells.some(c => c.includes("provider code") || c.includes("org code") || c.includes("organisation code"));
+      const hasWeekBands = cells.some(c => /\d+\s*[-–]\s*\d+/.test(c) || /\d+\s*\+/.test(c));
+      const hasTotalWaiting = cells.some(c => c.includes("total waiting") || c.includes("total wl"));
+      const hasDiagnostic = cells.some(c => c.includes("diagnostic") || c.includes("test"));
+      
+      // Require at least 5 non-empty cells AND provider code or (week bands AND total)
+      if (nonEmpty >= 5 && (hasProviderCode || (hasWeekBands && (hasTotalWaiting || hasDiagnostic)))) {
+        headerRowIdx = i;
+        console.log(`Found header row at index ${i}`);
+        break;
+      }
+    }
+    
+    if (headerRowIdx === -1) {
+      return new Response(
+        JSON.stringify({ error: "Could not find data header row in spreadsheet" }),
+        { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
+    // Parse using the detected header row
+    const headerRow = rawRows[headerRowIdx].map(c => String(c ?? "").trim());
+    const rows: Record<string, unknown>[] = [];
+    for (let i = headerRowIdx + 1; i < rawRows.length; i++) {
+      const row: Record<string, unknown> = {};
+      for (let j = 0; j < headerRow.length; j++) {
+        const key = headerRow[j] || `col_${j}`;
+        row[key] = rawRows[i]?.[j] ?? 0;
+      }
+      // Skip empty rows
+      const hasData = Object.values(row).some(v => v !== "" && v !== 0);
+      if (hasData) rows.push(row);
+    }
+    
+    console.log(`Using sheet: ${sheetName}, header row: ${headerRowIdx}, data rows: ${rows.length}, columns: ${headerRow.slice(0, 6).join(', ')}`);
 
     if (!rows.length) {
       return new Response(
@@ -151,34 +216,28 @@ Deno.serve(async (req) => {
       findCol(["diagnostic test", "test name", "procedure", "diagnostic"]) ??
       headers[2];
 
-    // Waiting-list weekly band columns (look for patterns like "0-1", "1-2", … "13+")
+    const totalWaitingCol = findCol(["total waiting", "total wl", "total list"]);
+    // Direct "Number waiting 6+ Weeks" column
+    const numberWaiting6PlusCol = findCol(["number waiting 6", "waiting 6+"]);
+    const numberWaiting13PlusCol = findCol(["number waiting 13", "waiting 13+"]);
+    const pctWaiting6PlusCol = findCol(["percentage waiting 6", "percent"]);
+
+    // Waiting-list weekly band columns (look for patterns like "0 <01", "01 <02", … "13+")
     const weekBandCols = headers.filter((h) => {
       const n = norm(h);
-      return (
-        /\d+\s*[-–]\s*\d+/.test(n) ||
-        /\d+\s*\+/.test(n) ||
-        n.includes("weeks")
-      );
+      return /\d+\s*[<>]\s*\d+/.test(n) || /\d+\s*[-–]\s*\d+/.test(n) || /\d+\s*\+/.test(n);
     });
 
-    // 6+ weeks column(s) – columns representing ≥6 weeks waited
-    const sixPlusCols = weekBandCols.filter((h) => {
-      const n = norm(h);
-      // Match "6-7", "7-8", …, "13+", "6+" etc.
-      const m = n.match(/(\d+)/);
-      return m && parseInt(m[1], 10) >= 6;
-    });
-
-    const totalWaitingCol = findCol(["total waiting", "total wl", "total list"]);
     const activityCol = findCol(["activity", "total activity"]);
 
     console.log("Detected columns:", {
       providerCodeCol,
       providerNameCol,
       testNameCol,
-      weekBandCols: weekBandCols.length,
-      sixPlusCols: sixPlusCols.length,
       totalWaitingCol,
+      numberWaiting6PlusCol,
+      pctWaiting6PlusCol,
+      weekBandCols: weekBandCols.length,
       activityCol,
     });
 
@@ -222,19 +281,27 @@ Deno.serve(async (req) => {
     const tests: TestRow[] = providerRows.map((r) => {
       const testName = String(r[testNameCol] ?? "Unknown").trim();
 
-      // Total waiting list: use dedicated column or sum all week bands
-      let totalWaiting = totalWaitingCol ? toNum(r[totalWaitingCol]) : 0;
+      // Total waiting list
+      let totalWaiting = Math.round(totalWaitingCol ? toNum(r[totalWaitingCol]) : 0);
       if (!totalWaiting && weekBandCols.length) {
-        totalWaiting = weekBandCols.reduce((s, c) => s + toNum(r[c]), 0);
+        totalWaiting = Math.round(weekBandCols.reduce((s, c) => s + toNum(r[c]), 0));
       }
 
-      // 6+ weeks waiting
-      const waiting6Plus = sixPlusCols.reduce((s, c) => s + toNum(r[c]), 0);
-
-      const pct =
-        totalWaiting > 0
-          ? Math.round((waiting6Plus / totalWaiting) * 10000) / 100
-          : 0;
+      // 6+ weeks waiting - prefer direct column, fall back to percentage calculation
+      let waiting6Plus = numberWaiting6PlusCol ? Math.round(toNum(r[numberWaiting6PlusCol])) : 0;
+      
+      // Percentage waiting 6+ weeks - prefer direct column
+      let pct = pctWaiting6PlusCol ? toNum(r[pctWaiting6PlusCol]) : 0;
+      // NHS stores as decimal (0.28 = 28%), convert to percentage
+      if (pct > 0 && pct < 1) pct = Math.round(pct * 10000) / 100;
+      
+      // If we don't have the direct column, calculate
+      if (!waiting6Plus && totalWaiting > 0 && pct > 0) {
+        waiting6Plus = Math.round(totalWaiting * pct / 100);
+      }
+      if (!pct && totalWaiting > 0 && waiting6Plus > 0) {
+        pct = Math.round((waiting6Plus / totalWaiting) * 10000) / 100;
+      }
 
       const activity = activityCol ? toNum(r[activityCol]) : 0;
 
@@ -338,7 +405,7 @@ Deno.serve(async (req) => {
       meta: {
         rows_parsed: providerRows.length,
         sheet_name: sheetName,
-        xls_url: xlsUrl,
+        source: "NHS England DM01",
         db_errors: {
           cache: cacheErr?.message ?? null,
           summary: summaryErr?.message ?? null,
