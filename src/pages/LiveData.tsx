@@ -430,7 +430,7 @@ export default function LiveData() {
                   <div className="rounded-lg border border-border bg-muted/30 p-4">
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total Waiting List</p>
                     <p className="text-2xl font-bold text-foreground mt-1">{fmt(s.total_waiting_list)}</p>
-                    <p className="text-sm text-muted-foreground mt-0.5">patients across {data.tests.length} tests</p>
+                    <p className="text-sm text-muted-foreground mt-0.5">patients across {data.tests.length} {data.tests.length === 1 ? 'test' : 'tests'}</p>
                   </div>
                   <div className="rounded-lg border border-border bg-muted/30 p-4">
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Monthly Activity</p>
