@@ -227,19 +227,7 @@ Deno.serve(async (req) => {
       if (hasData) rows.push(row);
     }
     
-    console.log(`Using sheet: ${sheetName}, header row: ${headerRowIdx}, data rows: ${rows.length}, ALL columns: ${headerRow.join(' | ')}`);
-    
-    // Debug: log first few rows to understand structure
-    const pcColIdx = headerRow.findIndex(h => norm(h).includes("provider code") || norm(h).includes("org code"));
-    const pcColName = pcColIdx >= 0 ? headerRow[pcColIdx] : headerRow[0];
-    const matchingRows = rows.filter(r => String(r[pcColName] ?? "").trim().toUpperCase() === providerCode.toUpperCase());
-    console.log(`Total rows matching provider ${providerCode}: ${matchingRows.length}`);
-    if (matchingRows.length > 0) {
-      console.log("First matching row:", JSON.stringify(Object.fromEntries(Object.entries(matchingRows[0]).slice(0, 10))));
-      if (matchingRows.length > 1) {
-        console.log("Second matching row:", JSON.stringify(Object.fromEntries(Object.entries(matchingRows[1]).slice(0, 10))));
-      }
-    }
+    console.log(`Using sheet: ${sheetName}, header row: ${headerRowIdx}, data rows: ${rows.length}, columns: ${headerRow.slice(0, 8).join(', ')}`);
 
     if (!rows.length) {
       return new Response(
