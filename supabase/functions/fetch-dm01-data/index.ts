@@ -137,12 +137,44 @@ Deno.serve(async (req) => {
 
     // ── 3. Parse the spreadsheet ────────────────────────────────
     const workbook = XLSX.read(buffer, { type: "array" });
-    // Use the first sheet (usually "Provider" data)
-    const sheetName = workbook.SheetNames[0];
-    const sheet = workbook.Sheets[sheetName];
-    const rows: Record<string, unknown>[] = XLSX.utils.sheet_to_json(sheet, {
-      defval: 0,
-    });
+    
+    // Find the correct sheet - look for one containing provider data, not the cover page
+    let sheetName = workbook.SheetNames[0];
+    for (const name of workbook.SheetNames) {
+      const n = name.toLowerCase();
+      if (n.includes("provider") || n.includes("data") || n.includes("dm01")) {
+        sheetName = name;
+        break;
+      }
+    }
+    
+    // If first sheet looks like a cover page, try subsequent sheets
+    let sheet = workbook.Sheets[sheetName];
+    let rows: Record<string, unknown>[] = XLSX.utils.sheet_to_json(sheet, { defval: 0 });
+    
+    // Check if parsed rows have provider-like columns; if not try other sheets
+    const hasProviderCols = (r: Record<string, unknown>[]) => {
+      if (!r.length) return false;
+      const keys = Object.keys(r[0]).map(k => norm(k));
+      return keys.some(k => k.includes("provider") || k.includes("org code"));
+    };
+    
+    if (!hasProviderCols(rows)) {
+      for (const name of workbook.SheetNames) {
+        if (name === sheetName) continue;
+        const altSheet = workbook.Sheets[name];
+        const altRows: Record<string, unknown>[] = XLSX.utils.sheet_to_json(altSheet, { defval: 0 });
+        if (hasProviderCols(altRows)) {
+          console.log(`Switched to sheet: ${name}`);
+          sheetName = name;
+          sheet = altSheet;
+          rows = altRows;
+          break;
+        }
+      }
+    }
+    
+    console.log(`Using sheet: ${sheetName}, rows: ${rows.length}, columns: ${rows.length ? Object.keys(rows[0]).slice(0, 5).join(', ') : 'none'}`);
 
     if (!rows.length) {
       return new Response(
