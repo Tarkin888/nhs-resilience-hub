@@ -27,6 +27,7 @@ const App = () => (
           <Route path="/services/:serviceId" element={<ServiceDetail />} />
           <Route path="/scenarios/exercises" element={<ExerciseLibrary />} />
           <Route path="/scenarios/results/:resultId" element={<ExerciseResults />} />
+          <Route path="/live-data" element={<LiveData />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/accessibility" element={<Accessibility />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
