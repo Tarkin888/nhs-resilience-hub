@@ -285,19 +285,27 @@ Deno.serve(async (req) => {
     const tests: TestRow[] = providerRows.map((r) => {
       const testName = String(r[testNameCol] ?? "Unknown").trim();
 
-      // Total waiting list: use dedicated column or sum all week bands
-      let totalWaiting = totalWaitingCol ? toNum(r[totalWaitingCol]) : 0;
+      // Total waiting list
+      let totalWaiting = Math.round(totalWaitingCol ? toNum(r[totalWaitingCol]) : 0);
       if (!totalWaiting && weekBandCols.length) {
-        totalWaiting = weekBandCols.reduce((s, c) => s + toNum(r[c]), 0);
+        totalWaiting = Math.round(weekBandCols.reduce((s, c) => s + toNum(r[c]), 0));
       }
 
-      // 6+ weeks waiting
-      const waiting6Plus = sixPlusCols.reduce((s, c) => s + toNum(r[c]), 0);
-
-      const pct =
-        totalWaiting > 0
-          ? Math.round((waiting6Plus / totalWaiting) * 10000) / 100
-          : 0;
+      // 6+ weeks waiting - prefer direct column, fall back to percentage calculation
+      let waiting6Plus = numberWaiting6PlusCol ? Math.round(toNum(r[numberWaiting6PlusCol])) : 0;
+      
+      // Percentage waiting 6+ weeks - prefer direct column
+      let pct = pctWaiting6PlusCol ? toNum(r[pctWaiting6PlusCol]) : 0;
+      // NHS stores as decimal (0.28 = 28%), convert to percentage
+      if (pct > 0 && pct < 1) pct = Math.round(pct * 10000) / 100;
+      
+      // If we don't have the direct column, calculate
+      if (!waiting6Plus && totalWaiting > 0 && pct > 0) {
+        waiting6Plus = Math.round(totalWaiting * pct / 100);
+      }
+      if (!pct && totalWaiting > 0 && waiting6Plus > 0) {
+        pct = Math.round((waiting6Plus / totalWaiting) * 10000) / 100;
+      }
 
       const activity = activityCol ? toNum(r[activityCol]) : 0;
 
