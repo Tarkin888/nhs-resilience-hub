@@ -2,3 +2,6 @@ project_id = "qtqcwzjwjxyjhxdbgbxo"
 
 [functions.fetch-dm01-data]
 verify_jwt = false
+
+[functions.fetch-dm01-history]
+verify_jwt = false
