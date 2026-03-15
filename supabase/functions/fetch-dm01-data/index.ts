@@ -221,34 +221,27 @@ Deno.serve(async (req) => {
       findCol(["diagnostic test", "test name", "procedure", "diagnostic"]) ??
       headers[2];
 
-    // Waiting-list weekly band columns (look for patterns like "0-1", "1-2", … "13+")
+    // Direct "Number waiting 6+ Weeks" column
+    const numberWaiting6PlusCol = findCol(["number waiting 6", "waiting 6+"]);
+    const numberWaiting13PlusCol = findCol(["number waiting 13", "waiting 13+"]);
+    const pctWaiting6PlusCol = findCol(["percentage waiting 6", "percent"]);
+
+    // Waiting-list weekly band columns (look for patterns like "0 <01", "01 <02", … "13+")
     const weekBandCols = headers.filter((h) => {
       const n = norm(h);
-      return (
-        /\d+\s*[-–]\s*\d+/.test(n) ||
-        /\d+\s*\+/.test(n) ||
-        n.includes("weeks")
-      );
+      return /\d+\s*[<>]\s*\d+/.test(n) || /\d+\s*[-–]\s*\d+/.test(n) || /\d+\s*\+/.test(n);
     });
 
-    // 6+ weeks column(s) – columns representing ≥6 weeks waited
-    const sixPlusCols = weekBandCols.filter((h) => {
-      const n = norm(h);
-      // Match "6-7", "7-8", …, "13+", "6+" etc.
-      const m = n.match(/(\d+)/);
-      return m && parseInt(m[1], 10) >= 6;
-    });
-
-    const totalWaitingCol = findCol(["total waiting", "total wl", "total list"]);
     const activityCol = findCol(["activity", "total activity"]);
 
     console.log("Detected columns:", {
       providerCodeCol,
       providerNameCol,
       testNameCol,
-      weekBandCols: weekBandCols.length,
-      sixPlusCols: sixPlusCols.length,
       totalWaitingCol,
+      numberWaiting6PlusCol,
+      pctWaiting6PlusCol,
+      weekBandCols: weekBandCols.length,
       activityCol,
     });
 
