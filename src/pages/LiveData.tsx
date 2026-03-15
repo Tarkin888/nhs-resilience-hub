@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Radio, Database, RefreshCw } from 'lucide-react';
+import { Radio, Database, RefreshCw, CheckCircle, AlertTriangle, XCircle, Info, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -177,70 +177,88 @@ export default function LiveData() {
           <Card>
             <CardContent className="py-12 text-center">
               <RefreshCw className="h-8 w-8 animate-spin mx-auto text-primary mb-3" />
-              <p className="text-muted-foreground">
-                Fetching DM01 data for {currentProvider?.name}…
-              </p>
+              <p className="font-medium text-foreground">Fetching data from NHS England...</p>
               <p className="text-xs text-muted-foreground mt-1">
-                This may take a moment while we download and parse the NHS England
-                spreadsheet.
+                This may take a moment while we download and parse the NHS England spreadsheet.
               </p>
             </CardContent>
           </Card>
         )}
 
-        {/* ── Empty State ─────────────────────────────────── */}
-        {!data && !loading && !error && (
-          <Card>
-            <CardContent className="py-16 flex flex-col items-center text-center gap-4">
-              <Database className="h-12 w-12 text-muted-foreground/50" />
-              <div>
-                <p className="font-medium text-foreground">No data loaded</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Click "Fetch Latest Data" to fetch the latest DM01 data from NHS
-                  England.
-                </p>
+        {/* ── Diagnostics Status Tile ─────────────────────── */}
+        {data && !loading && (() => {
+          const s = data.summary;
+          const statusColor = s.status === 'Operational' ? '#00A651' : s.status === 'Degraded' ? '#FFB81C' : '#DA291C';
+          const StatusIcon = s.status === 'Operational' ? CheckCircle : s.status === 'Degraded' ? AlertTriangle : XCircle;
+          const statusTextColor = s.status === 'Degraded' ? '#212B32' : '#FFFFFF';
+          const fmt = (n: number) => n.toLocaleString('en-GB');
+          const periodLabel = (() => {
+            const [y, m] = data.period.split('-');
+            const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+            return `${months[parseInt(m, 10) - 1]} ${y}`;
+          })();
+
+          return (
+            <div
+              className="w-full bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow"
+              style={{ borderLeft: `4px solid ${statusColor}` }}
+            >
+              <div className="flex flex-col lg:flex-row">
+                {/* Left Section */}
+                <div className="flex-[3] p-6 lg:p-8 flex flex-col justify-center gap-4">
+                  <div>
+                    <h3 className="text-2xl font-bold text-foreground">{data.provider_name}</h3>
+                    <p className="text-muted-foreground mt-1">{periodLabel}</p>
+                  </div>
+                  <div
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-base font-semibold w-fit"
+                    style={{ backgroundColor: statusColor, color: statusTextColor }}
+                  >
+                    <StatusIcon className="h-5 w-5" />
+                    {s.status}
+                  </div>
+                </div>
+
+                {/* Right Section – Metric Cards */}
+                <div className="flex-[2] p-6 lg:p-8 flex flex-col gap-3 lg:border-l border-border">
+                  {/* Key Metric */}
+                  <div className="rounded-lg p-4" style={{ backgroundColor: `${statusColor}10`, border: `1px solid ${statusColor}30` }}>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Patients Waiting 6+ Weeks</p>
+                    <p className="text-3xl font-bold mt-1" style={{ color: statusColor }}>{fmt(s.total_waiting_6_plus_weeks)}</p>
+                    <p className="text-sm text-muted-foreground mt-0.5">{s.percent_6_plus_weeks.toFixed(1)}% of waiting list</p>
+                  </div>
+                  <div className="rounded-lg border border-border bg-muted/30 p-4">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total Waiting List</p>
+                    <p className="text-2xl font-bold text-foreground mt-1">{fmt(s.total_waiting_list)}</p>
+                    <p className="text-sm text-muted-foreground mt-0.5">patients across {data.tests.length} tests</p>
+                  </div>
+                  <div className="rounded-lg border border-border bg-muted/30 p-4">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Monthly Activity</p>
+                    <p className="text-2xl font-bold text-foreground mt-1">{fmt(s.total_activity)}</p>
+                    <p className="text-sm text-muted-foreground mt-0.5">tests completed this month</p>
+                  </div>
+                </div>
               </div>
-              <Button
-                onClick={() => fetchData()}
-                className="gap-2"
-                style={{ backgroundColor: '#005EB8' }}
-              >
-                <Database className="h-4 w-4" />
-                Fetch Latest Data
-              </Button>
-            </CardContent>
-          </Card>
-        )}
 
-        {/* ── Data Display (placeholder for next prompt) ─── */}
-        {data && !loading && (
-          <Card>
-            <CardContent className="py-8 text-center">
-              <p className="font-medium text-foreground">
-                Data loaded for {data.provider_name} — {data.period}
-              </p>
-              <p className="text-sm text-muted-foreground mt-1">
-                {data.tests.length} diagnostic tests found | Status:{' '}
-                <span
-                  className="font-semibold"
-                  style={{
-                    color:
-                      data.summary.status === 'Operational'
-                        ? '#00A651'
-                        : data.summary.status === 'Degraded'
-                        ? '#FFB81C'
-                        : '#DA291C',
-                  }}
-                >
-                  {data.summary.status}
+              {/* Footer */}
+              <div className="border-t border-border px-6 lg:px-8 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1.5">
+                  <Info className="h-3.5 w-3.5 text-primary" />
+                  Source: NHS England DM01 Monthly Diagnostics
                 </span>
-              </p>
-              <p className="text-xs text-muted-foreground mt-2">
-                Full data visualisation will be added in the next update.
-              </p>
-            </CardContent>
-          </Card>
-        )}
+                <span>Operational Standard: &lt;1% should wait 6+ weeks</span>
+                <a
+                  href="https://www.england.nhs.uk/statistics/statistical-work-areas/diagnostics-waiting-times-and-activity/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-primary hover:underline"
+                >
+                  View source data <ExternalLink className="h-3 w-3" />
+                </a>
+              </div>
+            </div>
+          );
+        })()}
       </main>
 
       <StatusFooter onOpenMethodology={() => setIsMethodologyOpen(true)} />
