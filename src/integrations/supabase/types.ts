@@ -14,7 +14,87 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      diagnostics_cache: {
+        Row: {
+          created_at: string | null
+          id: string
+          percent_6_plus_weeks: number | null
+          period: string
+          provider_code: string
+          provider_name: string
+          test_code: string
+          test_description: string | null
+          total_activity: number | null
+          total_waiting_list: number | null
+          waiting_6_plus_weeks: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          percent_6_plus_weeks?: number | null
+          period: string
+          provider_code: string
+          provider_name: string
+          test_code: string
+          test_description?: string | null
+          total_activity?: number | null
+          total_waiting_list?: number | null
+          waiting_6_plus_weeks?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          percent_6_plus_weeks?: number | null
+          period?: string
+          provider_code?: string
+          provider_name?: string
+          test_code?: string
+          test_description?: string | null
+          total_activity?: number | null
+          total_waiting_list?: number | null
+          waiting_6_plus_weeks?: number | null
+        }
+        Relationships: []
+      }
+      diagnostics_summary: {
+        Row: {
+          fetched_at: string | null
+          id: string
+          percent_6_plus_weeks: number | null
+          period: string
+          provider_code: string
+          provider_name: string
+          status: string | null
+          total_activity: number | null
+          total_waiting_6_plus_weeks: number | null
+          total_waiting_list: number | null
+        }
+        Insert: {
+          fetched_at?: string | null
+          id?: string
+          percent_6_plus_weeks?: number | null
+          period: string
+          provider_code: string
+          provider_name: string
+          status?: string | null
+          total_activity?: number | null
+          total_waiting_6_plus_weeks?: number | null
+          total_waiting_list?: number | null
+        }
+        Update: {
+          fetched_at?: string | null
+          id?: string
+          percent_6_plus_weeks?: number | null
+          period?: string
+          provider_code?: string
+          provider_name?: string
+          status?: string | null
+          total_activity?: number | null
+          total_waiting_6_plus_weeks?: number | null
+          total_waiting_list?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
