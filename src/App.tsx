@@ -10,6 +10,7 @@ import ServicesOverview from "./pages/ServicesOverview";
 import ServiceDetail from "./pages/ServiceDetail";
 import ExerciseLibrary from "./pages/ExerciseLibrary";
 import ExerciseResults from "./pages/ExerciseResults";
+import LiveData from "./pages/LiveData";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
