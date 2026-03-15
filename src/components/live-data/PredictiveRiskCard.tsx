@@ -96,10 +96,7 @@ const PredictiveRiskCard = memo(({ trendData, tests }: PredictiveRiskCardProps) 
     let riskLevel: 'low' | 'medium' | 'high';
     if (slope <= 0 || projectedBand === 'operational') {
       riskLevel = 'low';
-    } else if (projectedBand !== currentBand && (
-      (currentBand === 'operational' && projectedBand !== 'operational') ||
-      (currentBand === 'degraded' && projectedBand === 'atRisk')
-    )) {
+    } else if (projectedBand !== currentBand) {
       riskLevel = 'high';
     } else {
       riskLevel = 'medium';
