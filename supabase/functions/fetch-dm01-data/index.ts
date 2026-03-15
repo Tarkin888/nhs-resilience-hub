@@ -216,6 +216,7 @@ Deno.serve(async (req) => {
       findCol(["diagnostic test", "test name", "procedure", "diagnostic"]) ??
       headers[2];
 
+    const totalWaitingCol = findCol(["total waiting", "total wl", "total list"]);
     // Direct "Number waiting 6+ Weeks" column
     const numberWaiting6PlusCol = findCol(["number waiting 6", "waiting 6+"]);
     const numberWaiting13PlusCol = findCol(["number waiting 13", "waiting 13+"]);
