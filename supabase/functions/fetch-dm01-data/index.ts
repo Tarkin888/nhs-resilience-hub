@@ -48,7 +48,7 @@ async function discoverProviderXlsUrl(period: string): Promise<string | null> {
       const html = await res.text();
 
       const linkRegex =
-        /href="(https?:\/\/[^"]*Monthly-Diagnostics-Provider[^"]*\.xls[x]?)"/gi;
+        /href="(https?:\/\/[^"]*(?:Monthly-Diagnostics-(?:Web-File-)?Provider)[^"]*\.xls[x]?)"/gi;
       let match;
       const candidates: string[] = [];
       while ((match = linkRegex.exec(html)) !== null) {
