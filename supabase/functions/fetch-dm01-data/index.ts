@@ -108,7 +108,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { providerCode = "R0A", period = "2025-07" } = await req.json();
+    const { providerCode = "R0A", period = "2026-01" } = await req.json();
 
     // ── 1. Resolve and download the XLS file ──────────────────
     // Build a prioritised list of URLs to try
@@ -117,10 +117,7 @@ Deno.serve(async (req) => {
     // First: hardcoded known URL
     if (KNOWN_URLS[period]) urlsToTry.push(KNOWN_URLS[period]);
     
-    // Second: generated candidate URLs based on common NHS patterns
-    urlsToTry.push(...generateCandidateUrls(period));
-    
-    // Try all candidate URLs first (fast, no page scraping needed)
+    // Try known URLs first (fast, no page scraping needed)
     let buffer = await tryFetchUrls(urlsToTry);
     
     // Third: try discovery from HTML page as last resort
