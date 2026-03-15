@@ -53,47 +53,61 @@ function generateCandidateUrls(period: string): string[] {
  * Try to discover the Provider XLS link from the NHS data page HTML.
  */
 async function discoverProviderXlsUrl(period: string): Promise<string | null> {
-  try {
-    const res = await fetch(DATA_PAGE_URL, {
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; LovableBot/1.0)" },
-    });
-    if (!res.ok) {
-      console.error("Failed to fetch data page:", res.status);
-      return null;
+  const [year, month] = period.split("-");
+  const monthName = MONTH_NAMES[parseInt(month, 10) - 1];
+  if (!monthName) return null;
+
+  for (const pageUrl of DATA_PAGE_URLS) {
+    try {
+      const res = await fetch(pageUrl, {
+        headers: { "User-Agent": "Mozilla/5.0 (compatible; LovableBot/1.0)" },
+      });
+      if (!res.ok) continue;
+      const html = await res.text();
+
+      const linkRegex =
+        /href="(https?:\/\/[^"]*Monthly-Diagnostics-Provider[^"]*\.xls[x]?)"/gi;
+      let match;
+      const candidates: string[] = [];
+      while ((match = linkRegex.exec(html)) !== null) {
+        candidates.push(match[1]);
+      }
+      if (candidates.length === 0) continue;
+
+      const target = candidates.find(
+        (url) =>
+          url.toLowerCase().includes(monthName.toLowerCase()) &&
+          url.includes(year)
+      );
+      if (target) return target;
+      if (candidates.length > 0) return candidates[0];
+    } catch (err) {
+      console.error("Error discovering XLS URL from", pageUrl, err);
     }
-    const html = await res.text();
-
-    // Look for links containing "Provider" and the XLS extension
-    const linkRegex =
-      /href="(https?:\/\/[^"]*Monthly-Diagnostics-Provider[^"]*\.xls[x]?)"/gi;
-    let match;
-    const candidates: string[] = [];
-    while ((match = linkRegex.exec(html)) !== null) {
-      candidates.push(match[1]);
-    }
-
-    if (candidates.length === 0) return null;
-
-    // Parse the requested period to find the matching month name
-    const [year, month] = period.split("-");
-    const monthNames = [
-      "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December",
-    ];
-    const monthName = monthNames[parseInt(month, 10) - 1];
-    if (!monthName) return null;
-
-    // Try to find a URL matching the month and year
-    const target = candidates.find(
-      (url) =>
-        url.toLowerCase().includes(monthName.toLowerCase()) &&
-        url.includes(year)
-    );
-    return target || candidates[0]; // fall back to first candidate
-  } catch (err) {
-    console.error("Error discovering XLS URL:", err);
-    return null;
   }
+  return null;
+}
+
+/**
+ * Try to fetch an XLS file from a list of URLs, returning the first successful buffer.
+ */
+async function tryFetchUrls(urls: string[]): Promise<Uint8Array | null> {
+  for (const url of urls) {
+    try {
+      console.log(`Trying URL: ${url}`);
+      const res = await fetch(url, {
+        headers: { "User-Agent": "Mozilla/5.0 (compatible; LovableBot/1.0)" },
+      });
+      if (res.ok) {
+        console.log(`Success: ${url}`);
+        return new Uint8Array(await res.arrayBuffer());
+      }
+      console.log(`Failed (${res.status}): ${url}`);
+    } catch (e) {
+      console.log(`Error fetching ${url}: ${e}`);
+    }
+  }
+  return null;
 }
 
 /**
