@@ -516,6 +516,11 @@ export default function LiveData() {
             </CardContent>
           </Card>
         )}
+
+        {/* ── Predictive Risk Assessment ──────────────────── */}
+        {data && !loading && trendData.length > 2 && (
+          <PredictiveRiskCard trendData={trendData} tests={data.tests} />
+        )}
       </main>
 
       <StatusFooter onOpenMethodology={() => setIsMethodologyOpen(true)} />
