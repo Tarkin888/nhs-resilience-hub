@@ -372,7 +372,7 @@ Deno.serve(async (req) => {
       meta: {
         rows_parsed: providerRows.length,
         sheet_name: sheetName,
-        xls_url: xlsUrl,
+        source: "NHS England DM01",
         db_errors: {
           cache: cacheErr?.message ?? null,
           summary: summaryErr?.message ?? null,
