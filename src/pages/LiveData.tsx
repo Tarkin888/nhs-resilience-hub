@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { Radio, Database, RefreshCw, CheckCircle, AlertTriangle, XCircle, Info, ExternalLink, ArrowUpDown } from 'lucide-react';
+import { useState, useMemo, useCallback } from 'react';
+import { Radio, Database, RefreshCw, CheckCircle, AlertTriangle, XCircle, Info, ExternalLink, ArrowUpDown, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -10,7 +10,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, ResponsiveContainer, Cell, LabelList,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ReferenceLine, ResponsiveContainer, Cell, LabelList,
+  LineChart, Line, Area, AreaChart,
 } from 'recharts';
 import Header from '@/components/Header';
 import StatusFooter from '@/components/StatusFooter';
