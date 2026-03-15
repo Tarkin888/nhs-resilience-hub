@@ -13,8 +13,41 @@ const KNOWN_URLS: Record<string, string> = {
     "https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2025/09/Monthly-Diagnostics-Provider-July-2025.xls",
 };
 
-const DATA_PAGE_URL =
-  "https://www.england.nhs.uk/statistics/statistical-work-areas/diagnostics-waiting-times-and-activity/monthly-diagnostics-waiting-times-and-activity/monthly-diagnostics-data-2025-26/";
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+const DATA_PAGE_URLS = [
+  "https://www.england.nhs.uk/statistics/statistical-work-areas/diagnostics-waiting-times-and-activity/monthly-diagnostics-waiting-times-and-activity/monthly-diagnostics-data-2025-26/",
+  "https://www.england.nhs.uk/statistics/statistical-work-areas/diagnostics-waiting-times-and-activity/monthly-diagnostics-waiting-times-and-activity/monthly-diagnostics-data-2024-25/",
+];
+
+/**
+ * Generate candidate direct URLs for the provider XLS based on common NHS patterns.
+ */
+function generateCandidateUrls(period: string): string[] {
+  const [year, month] = period.split("-");
+  const monthName = MONTH_NAMES[parseInt(month, 10) - 1];
+  if (!monthName) return [];
+
+  // NHS publishes ~2 months later, so try multiple upload month directories
+  const pubYear = parseInt(year, 10);
+  const pubMonth = parseInt(month, 10);
+  const candidates: string[] = [];
+
+  for (let offset = 1; offset <= 4; offset++) {
+    let pm = pubMonth + offset;
+    let py = pubYear;
+    if (pm > 12) { pm -= 12; py += 1; }
+    const pmStr = String(pm).padStart(2, "0");
+    candidates.push(
+      `https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/${py}/${pmStr}/Monthly-Diagnostics-Provider-${monthName}-${year}.xls`,
+      `https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/${py}/${pmStr}/Monthly-Diagnostics-Provider-${monthName}-${year}.xlsx`,
+    );
+  }
+  return candidates;
+}
 
 /**
  * Try to discover the Provider XLS link from the NHS data page HTML.
