@@ -7,10 +7,18 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Known DM01 Provider XLS URLs by period
+// Known DM01 Provider XLS URLs by period (from NHS England 2025-26 page)
 const KNOWN_URLS: Record<string, string> = {
-  "2025-07":
-    "https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2025/09/Monthly-Diagnostics-Provider-July-2025.xls",
+  "2026-01": "https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2026/03/Monthly-Diagnostics-Web-File-Provider-January-2026_42P3N.xls",
+  "2025-12": "https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2026/02/Monthly-Diagnostics-Web-File-Provider-December-2025_EDNKH.xls",
+  "2025-11": "https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2026/01/Monthly-Diagnostics-Web-File-Provider-November-2025_8HM0N.xls",
+  "2025-10": "https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2025/12/Monthly-Diagnostics-Web-File-Provider-October-2025_F5GI8.xls",
+  "2025-09": "https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2025/11/Monthly-Diagnostics-Web-File-Provider-September-2025_M0NX3.xls",
+  "2025-08": "https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2025/10/Monthly-Diagnostics-Web-File-Provider-August-2025_EJKO9.xls",
+  "2025-07": "https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2025/09/Monthly-Diagnostics-Web-File-Provider-July-2025_L8FLO.xls",
+  "2025-06": "https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2025/08/Monthly-Diagnostics-Web-File-Provider-June-2025_45KNG.xls",
+  "2025-05": "https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2025/07/Monthly-Diagnostics-Web-File-Provider-May-2025.xls",
+  "2025-04": "https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/2025/06/Monthly-Diagnostics-Web-File-Provider-April-2025_3EY67.xls",
 };
 
 const MONTH_NAMES = [
@@ -22,32 +30,6 @@ const DATA_PAGE_URLS = [
   "https://www.england.nhs.uk/statistics/statistical-work-areas/diagnostics-waiting-times-and-activity/monthly-diagnostics-waiting-times-and-activity/monthly-diagnostics-data-2025-26/",
   "https://www.england.nhs.uk/statistics/statistical-work-areas/diagnostics-waiting-times-and-activity/monthly-diagnostics-waiting-times-and-activity/monthly-diagnostics-data-2024-25/",
 ];
-
-/**
- * Generate candidate direct URLs for the provider XLS based on common NHS patterns.
- */
-function generateCandidateUrls(period: string): string[] {
-  const [year, month] = period.split("-");
-  const monthName = MONTH_NAMES[parseInt(month, 10) - 1];
-  if (!monthName) return [];
-
-  // NHS publishes ~2 months later, so try multiple upload month directories
-  const pubYear = parseInt(year, 10);
-  const pubMonth = parseInt(month, 10);
-  const candidates: string[] = [];
-
-  for (let offset = 1; offset <= 4; offset++) {
-    let pm = pubMonth + offset;
-    let py = pubYear;
-    if (pm > 12) { pm -= 12; py += 1; }
-    const pmStr = String(pm).padStart(2, "0");
-    candidates.push(
-      `https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/${py}/${pmStr}/Monthly-Diagnostics-Provider-${monthName}-${year}.xls`,
-      `https://www.england.nhs.uk/statistics/wp-content/uploads/sites/2/${py}/${pmStr}/Monthly-Diagnostics-Provider-${monthName}-${year}.xlsx`,
-    );
-  }
-  return candidates;
-}
 
 /**
  * Try to discover the Provider XLS link from the NHS data page HTML.
