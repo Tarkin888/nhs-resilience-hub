@@ -227,16 +227,19 @@ Deno.serve(async (req) => {
       if (hasData) rows.push(row);
     }
     
-    console.log(`Using sheet: ${sheetName}, header row: ${headerRowIdx}, data rows: ${rows.length}, columns: ${headerRow.join(' | ')}`);
+    console.log(`Using sheet: ${sheetName}, header row: ${headerRowIdx}, data rows: ${rows.length}, ALL columns: ${headerRow.join(' | ')}`);
     
-    // Debug: log first row matching the provider
-    const debugRow = rows.find(r => String(r[findCol(["provider code", "org code", "organisation code"]) ?? ""] ?? "").trim().toUpperCase() === providerCode.toUpperCase());
-    if (debugRow) {
-      console.log("First matching row keys:", Object.keys(debugRow).join(' | '));
-      console.log("First matching row values:", Object.values(debugRow).map(v => String(v).substring(0, 30)).join(' | '));
+    // Debug: log first few rows to understand structure
+    const pcColIdx = headerRow.findIndex(h => norm(h).includes("provider code") || norm(h).includes("org code"));
+    const pcColName = pcColIdx >= 0 ? headerRow[pcColIdx] : headerRow[0];
+    const matchingRows = rows.filter(r => String(r[pcColName] ?? "").trim().toUpperCase() === providerCode.toUpperCase());
+    console.log(`Total rows matching provider ${providerCode}: ${matchingRows.length}`);
+    if (matchingRows.length > 0) {
+      console.log("First matching row:", JSON.stringify(Object.fromEntries(Object.entries(matchingRows[0]).slice(0, 10))));
+      if (matchingRows.length > 1) {
+        console.log("Second matching row:", JSON.stringify(Object.fromEntries(Object.entries(matchingRows[1]).slice(0, 10))));
+      }
     }
-    const matchCount = rows.filter(r => String(r[findCol(["provider code", "org code", "organisation code"]) ?? ""] ?? "").trim().toUpperCase() === providerCode.toUpperCase()).length;
-    console.log(`Total rows matching provider ${providerCode}: ${matchCount}`);
 
     if (!rows.length) {
       return new Response(
