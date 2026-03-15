@@ -243,7 +243,7 @@ export default function LiveData() {
         )}
       </main>
 
-      <StatusFooter />
+      <StatusFooter onOpenMethodology={() => setIsMethodologyOpen(true)} />
     </div>
   );
 }
