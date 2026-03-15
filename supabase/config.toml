@@ -1,1 +1,4 @@
 project_id = "qtqcwzjwjxyjhxdbgbxo"
+
+[functions.fetch-dm01-data]
+verify_jwt = false
