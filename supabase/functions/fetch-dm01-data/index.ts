@@ -138,13 +138,46 @@ Deno.serve(async (req) => {
     // ── 3. Parse the spreadsheet ────────────────────────────────
     const workbook = XLSX.read(buffer, { type: "array" });
     
-    // Find the correct sheet - prefer one named "Provider"
+    console.log("All sheet names:", workbook.SheetNames);
+    
+    // The DM01 Provider file may have multiple sheets. We need the one with
+    // per-test (per-modality) breakdown, not the aggregate "Provider" summary.
+    // Look for sheets in priority order: per-test sheets first, then provider summary.
     let sheetName = workbook.SheetNames[0];
+    let foundPerTestSheet = false;
+    
+    // Priority 1: Look for a sheet with per-test/per-modality data
     for (const name of workbook.SheetNames) {
       const n = name.toLowerCase();
-      if (n.includes("provider") || n.includes("data") || n.includes("dm01")) {
+      if (n.includes("test") || n.includes("modality") || n.includes("by test") || n.includes("procedure")) {
         sheetName = name;
+        foundPerTestSheet = true;
         break;
+      }
+    }
+    
+    // Priority 2: If no per-test sheet, use the first sheet (which often has detailed data)
+    // but NOT the "Provider" summary sheet if alternatives exist
+    if (!foundPerTestSheet && workbook.SheetNames.length > 1) {
+      // Check if first sheet has more rows than "Provider" sheet - that's likely the detailed one
+      for (const name of workbook.SheetNames) {
+        const n = name.toLowerCase();
+        if (!n.includes("provider") && !n.includes("note") && !n.includes("content")) {
+          sheetName = name;
+          foundPerTestSheet = true;
+          break;
+        }
+      }
+    }
+    
+    // Priority 3: Fall back to Provider sheet (we'll handle aggregation differently)
+    if (!foundPerTestSheet) {
+      for (const name of workbook.SheetNames) {
+        const n = name.toLowerCase();
+        if (n.includes("provider") || n.includes("data") || n.includes("dm01")) {
+          sheetName = name;
+          break;
+        }
       }
     }
     
