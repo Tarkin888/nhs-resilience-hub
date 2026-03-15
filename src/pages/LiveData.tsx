@@ -15,6 +15,7 @@ import {
 } from 'recharts';
 import Header from '@/components/Header';
 import StatusFooter from '@/components/StatusFooter';
+import PredictiveRiskCard from '@/components/live-data/PredictiveRiskCard';
 import { supabase } from '@/integrations/supabase/client';
 
 const PROVIDERS = [
