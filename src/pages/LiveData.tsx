@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Radio, Database, RefreshCw } from 'lucide-react';
+import { Radio, Database, RefreshCw, CheckCircle, AlertTriangle, XCircle, Info, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
