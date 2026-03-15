@@ -155,11 +155,6 @@ Deno.serve(async (req) => {
     // Convert to array-of-arrays to scan for the header row.
     const rawRows: unknown[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
     
-    // Dump first 20 rows to understand structure
-    for (let i = 0; i < Math.min(rawRows.length, 20); i++) {
-      console.log(`Row ${i}: ${rawRows[i].slice(0, 12).map(c => String(c ?? "")).join(' | ')}`);
-    }
-    
     let headerRowIdx = -1;
     for (let i = 0; i < Math.min(rawRows.length, 30); i++) {
       const cells = rawRows[i].map(c => norm(c));
