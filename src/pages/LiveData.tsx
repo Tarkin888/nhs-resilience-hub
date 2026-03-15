@@ -1,5 +1,5 @@
-import { useState, useMemo, useCallback } from 'react';
-import { Radio, Database, RefreshCw, CheckCircle, AlertTriangle, XCircle, Info, ExternalLink, ArrowUpDown, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import { Radio, Database, RefreshCw, CheckCircle, AlertTriangle, XCircle, Info, ExternalLink, ArrowUpDown, TrendingUp, TrendingDown, Minus, AlertCircle, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -10,8 +10,18 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ReferenceLine, ResponsiveContainer, Cell, LabelList,
-  LineChart, Line, Area, AreaChart,
+  AreaChart, Area,
 } from 'recharts';
 import Header from '@/components/Header';
 import StatusFooter from '@/components/StatusFooter';
@@ -79,17 +89,88 @@ const formatPeriodShort = (period: string) => {
   return `${months[parseInt(m, 10) - 1]} ${y.slice(2)}`;
 };
 
+const LOADING_MESSAGES = [
+  'Connecting to NHS England...',
+  'Downloading data...',
+  'Processing...',
+];
+
+/* ── Freshness helpers ─────────────────────────────────── */
+function getFreshnessInfo(lastRefreshed: Date | null) {
+  if (!lastRefreshed) return null;
+  const hours = (Date.now() - lastRefreshed.getTime()) / 3600000;
+  if (hours <= 24) return { color: '#10B981', label: 'Fresh' };
+  if (hours <= 168) return { color: '#F59E0B', label: '1-7 days old' };
+  return { color: '#EF4444', label: 'Stale (7+ days)' };
+}
+
+/* ── Skeleton blocks ───────────────────────────────────── */
+const SkeletonBlock = ({ className = '' }: { className?: string }) => (
+  <div className={`animate-pulse rounded-lg bg-muted ${className}`} />
+);
+
+const StatusTileSkeleton = () => (
+  <div className="w-full bg-card rounded-xl border border-border shadow-sm" style={{ borderLeft: '4px solid hsl(var(--border))' }}>
+    <div className="flex flex-col lg:flex-row">
+      <div className="flex-[3] p-6 lg:p-8 space-y-4">
+        <SkeletonBlock className="h-7 w-3/4" />
+        <SkeletonBlock className="h-4 w-1/3" />
+        <SkeletonBlock className="h-10 w-36 rounded-full" />
+      </div>
+      <div className="flex-[2] p-6 lg:p-8 space-y-3 lg:border-l border-border">
+        <SkeletonBlock className="h-24" />
+        <SkeletonBlock className="h-20" />
+        <SkeletonBlock className="h-20" />
+      </div>
+    </div>
+  </div>
+);
+
+const ChartSkeleton = () => (
+  <div className="w-full bg-card rounded-xl border border-border shadow-sm p-6 lg:p-8 space-y-4">
+    <SkeletonBlock className="h-6 w-64" />
+    <SkeletonBlock className="h-4 w-80" />
+    <SkeletonBlock className="h-[300px]" />
+  </div>
+);
+
+const TableSkeleton = () => (
+  <div className="w-full bg-card rounded-xl border border-border shadow-sm p-6 lg:p-8 space-y-3">
+    <SkeletonBlock className="h-6 w-56" />
+    {Array.from({ length: 6 }).map((_, i) => (
+      <SkeletonBlock key={i} className="h-10 w-full" />
+    ))}
+  </div>
+);
+
 export default function LiveData() {
   const [isMethodologyOpen, setIsMethodologyOpen] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState('R0A');
   const [loading, setLoading] = useState(false);
+  const [loadingStep, setLoadingStep] = useState(0);
   const [data, setData] = useState<DM01Response | null>(null);
   const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [errorType, setErrorType] = useState<'fetch' | 'provider'>('fetch');
   const [sortKey, setSortKey] = useState<SortKey>('percent_6_plus_weeks');
   const [sortAsc, setSortAsc] = useState(false);
   const [trendData, setTrendData] = useState<TrendPoint[]>([]);
   const [trendLoading, setTrendLoading] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
+  const loadingInterval = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Progressive loading messages
+  useEffect(() => {
+    if (loading) {
+      setLoadingStep(0);
+      loadingInterval.current = setInterval(() => {
+        setLoadingStep(prev => Math.min(prev + 1, LOADING_MESSAGES.length - 1));
+      }, 2000);
+    } else {
+      if (loadingInterval.current) clearInterval(loadingInterval.current);
+    }
+    return () => { if (loadingInterval.current) clearInterval(loadingInterval.current); };
+  }, [loading]);
 
   const fetchTrend = useCallback(async (providerCode: string) => {
     setTrendLoading(true);
@@ -111,6 +192,7 @@ export default function LiveData() {
     const code = providerCode ?? selectedProvider;
     setLoading(true);
     setError(null);
+    setErrorType('fetch');
     try {
       const { data: result, error: fnError } = await supabase.functions.invoke(
         'fetch-dm01-data',
@@ -118,16 +200,18 @@ export default function LiveData() {
       );
       if (fnError) throw fnError;
       if (result?.error) {
+        const isProviderError = (result.error as string).toLowerCase().includes('not found') || (result.error as string).toLowerCase().includes('provider');
+        setErrorType(isProviderError ? 'provider' : 'fetch');
         setError(result.error);
         setData(null);
       } else {
         setData(result as DM01Response);
         setLastRefreshed(new Date());
-        // Fetch trend data after main data is loaded
         fetchTrend(code);
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to fetch data');
+      setErrorType('fetch');
       setData(null);
     } finally {
       setLoading(false);
@@ -162,10 +246,11 @@ export default function LiveData() {
   }, [data]);
 
   const currentProvider = PROVIDERS.find((p) => p.code === selectedProvider);
+  const freshness = getFreshnessInfo(lastRefreshed);
 
   const SortHeader = ({ label, field }: { label: string; field: SortKey }) => (
     <th
-      className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground select-none"
+      className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground select-none whitespace-nowrap"
       onClick={() => handleSort(field)}
     >
       <span className="inline-flex items-center gap-1">
@@ -175,28 +260,52 @@ export default function LiveData() {
     </th>
   );
 
+  // Print header info
+  const printTitle = data
+    ? `NHS Diagnostics Performance - ${data.provider_name} - ${(() => { const [y, m] = data.period.split('-'); const months = ['January','February','March','April','May','June','July','August','September','October','November','December']; return `${months[parseInt(m, 10) - 1]} ${y}`; })()}`
+    : 'NHS Diagnostics Performance';
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <Header isMethodologyOpen={isMethodologyOpen} onMethodologyOpenChange={setIsMethodologyOpen} />
+      {/* Print-only header */}
+      <div className="hidden print:block print:mb-6 print:border-b-2 print:border-foreground print:pb-4">
+        <h1 className="text-xl font-bold text-foreground">{printTitle}</h1>
+        <p className="text-sm text-muted-foreground mt-1">Generated: {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+      </div>
+
+      <div className="print:hidden">
+        <Header isMethodologyOpen={isMethodologyOpen} onMethodologyOpenChange={setIsMethodologyOpen} />
+      </div>
 
       <main className="flex-1 max-w-[1400px] mx-auto w-full px-4 md:px-8 py-6 space-y-6">
         {/* ── Live Data Banner ─────────────────────────────── */}
         <div
-          className="w-full rounded-lg px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+          className="w-full rounded-lg px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 print:hidden"
           style={{ backgroundColor: '#E8F5E9', borderLeft: '4px solid #2E7D32' }}
         >
           <div className="flex items-center gap-2">
             <Radio className="h-5 w-5" style={{ color: '#2E7D32' }} />
             <span className="font-semibold text-sm" style={{ color: '#2E7D32' }}>LIVE DATA</span>
-            <span className="text-sm" style={{ color: '#1B5E20' }}>| Sourced from NHS England Monthly Diagnostics (DM01)</span>
+            <span className="text-sm hidden sm:inline" style={{ color: '#1B5E20' }}>| Sourced from NHS England Monthly Diagnostics (DM01)</span>
           </div>
           <div className="flex items-center gap-3">
-            {lastRefreshed && (
-              <span className="text-xs" style={{ color: '#2E7D32' }}>Last refreshed: {lastRefreshed.toLocaleTimeString()}</span>
+            {lastRefreshed && freshness && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="flex items-center gap-1.5 text-xs" style={{ color: '#2E7D32' }}>
+                    <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: freshness.color }} />
+                    Last refreshed: {lastRefreshed.toLocaleTimeString()}
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-[220px]">
+                  <p className="text-xs font-medium">{freshness.label}</p>
+                  <p className="text-xs text-muted-foreground mt-1">NHS England typically publishes new DM01 data monthly, 4-6 weeks after the reporting period.</p>
+                </TooltipContent>
+              </Tooltip>
             )}
             <Button variant="outline" size="sm" className="gap-1.5 border-[#2E7D32] text-[#2E7D32] hover:bg-[#C8E6C9]" onClick={() => fetchData()} disabled={loading}>
               <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
-              Refresh Data
+              <span className="hidden sm:inline">Refresh Data</span>
             </Button>
           </div>
         </div>
@@ -208,35 +317,66 @@ export default function LiveData() {
             <p className="text-muted-foreground mt-1">Monthly Diagnostic Waiting Times and Activity (DM01)</p>
             <p className="text-xs text-muted-foreground mt-1">Source: NHS England Official Statistics | Operational Standard: &lt;1% waiting 6+ weeks</p>
           </div>
-          <Select value={selectedProvider} onValueChange={handleProviderChange}>
-            <SelectTrigger className="w-full md:w-[340px]"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {PROVIDERS.map((p) => (
-                <SelectItem key={p.code} value={p.code}>{p.name} ({p.code})</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="print:hidden w-full md:w-auto">
+            <Select value={selectedProvider} onValueChange={handleProviderChange}>
+              <SelectTrigger className="w-full md:w-[340px]"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {PROVIDERS.map((p) => (
+                  <SelectItem key={p.code} value={p.code}>{p.name} ({p.code})</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {/* ── Error State ─────────────────────────────────── */}
         {error && (
-          <Card className="border-destructive/50 bg-destructive/5">
-            <CardContent className="py-6 text-center text-destructive">
-              <p className="font-medium">{error}</p>
-              <p className="text-sm mt-1 text-muted-foreground">Try refreshing or selecting a different provider.</p>
-            </CardContent>
-          </Card>
+          <div className="w-full bg-[#FEF2F2] rounded-xl border border-[#FECACA] shadow-sm" style={{ borderLeft: '4px solid #EF4444' }}>
+            <div className="p-6 flex items-start gap-4">
+              <AlertCircle className="h-6 w-6 text-[#DC2626] flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <h3 className="text-base font-semibold text-[#991B1B]">
+                  {errorType === 'provider'
+                    ? `Provider ${selectedProvider} not found`
+                    : 'Unable to fetch NHS England data'}
+                </h3>
+                <p className="text-sm text-[#7F1D1D] mt-1">
+                  {errorType === 'provider'
+                    ? `Provider ${selectedProvider} was not found in the latest DM01 data. Please select a different provider.`
+                    : 'The DM01 data file could not be retrieved. This may be because NHS England is updating their statistics. Please try again later.'}
+                </p>
+                {error !== 'Failed to fetch data' && (
+                  <p className="text-xs text-[#9B1C1C]/70 mt-2 font-mono">{error}</p>
+                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-3 gap-1.5 border-[#EF4444] text-[#DC2626] hover:bg-[#FEE2E2]"
+                  onClick={() => fetchData()}
+                  disabled={loading}
+                >
+                  <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
+                  Retry
+                </Button>
+              </div>
+            </div>
+          </div>
         )}
 
-        {/* ── Loading State ───────────────────────────────── */}
+        {/* ── Loading Skeletons ────────────────────────────── */}
         {loading && (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <RefreshCw className="h-8 w-8 animate-spin mx-auto text-primary mb-3" />
-              <p className="font-medium text-foreground">Fetching data from NHS England...</p>
-              <p className="text-xs text-muted-foreground mt-1">This may take a moment while we download and parse the NHS England spreadsheet.</p>
-            </CardContent>
-          </Card>
+          <>
+            <Card>
+              <CardContent className="py-8 text-center">
+                <RefreshCw className="h-8 w-8 animate-spin mx-auto text-primary mb-3" />
+                <p className="font-medium text-foreground">{LOADING_MESSAGES[loadingStep]}</p>
+                <p className="text-xs text-muted-foreground mt-1">This may take a moment while we download and parse the NHS England spreadsheet.</p>
+              </CardContent>
+            </Card>
+            <StatusTileSkeleton />
+            <ChartSkeleton />
+            <TableSkeleton />
+          </>
         )}
 
         {/* ── Empty State ─────────────────────────────────── */}
@@ -269,7 +409,7 @@ export default function LiveData() {
           })();
 
           return (
-            <div className="w-full bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow" style={{ borderLeft: `4px solid ${statusColor}` }}>
+            <div className="w-full bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow print:shadow-none print:hover:shadow-none" style={{ borderLeft: `4px solid ${statusColor}` }}>
               <div className="flex flex-col lg:flex-row">
                 <div className="flex-[3] p-6 lg:p-8 flex flex-col justify-center gap-4">
                   <div>
@@ -302,7 +442,7 @@ export default function LiveData() {
               <div className="border-t border-border px-6 lg:px-8 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs text-muted-foreground">
                 <span className="flex items-center gap-1.5"><Info className="h-3.5 w-3.5 text-primary" />Source: NHS England DM01 Monthly Diagnostics</span>
                 <span>Operational Standard: &lt;1% should wait 6+ weeks</span>
-                <a href="https://www.england.nhs.uk/statistics/statistical-work-areas/diagnostics-waiting-times-and-activity/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-primary hover:underline">
+                <a href="https://www.england.nhs.uk/statistics/statistical-work-areas/diagnostics-waiting-times-and-activity/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-primary hover:underline print:hidden">
                   View source data <ExternalLink className="h-3 w-3" />
                 </a>
               </div>
@@ -312,48 +452,49 @@ export default function LiveData() {
 
         {/* ── Diagnostic Test Breakdown ────────────────────── */}
         {data && !loading && (
-          <div className="w-full bg-card rounded-xl border border-border shadow-sm">
-            {/* Section Header */}
+          <div className="w-full bg-card rounded-xl border border-border shadow-sm print:shadow-none">
             <div className="p-6 lg:p-8 pb-4">
               <h3 className="text-xl font-bold text-foreground">Diagnostic Test Breakdown</h3>
               <p className="text-sm text-muted-foreground mt-1">Performance by modality against 6-week standard</p>
             </div>
 
-            {/* Horizontal Bar Chart */}
-            <div className="px-6 lg:px-8 pb-6">
-              <ResponsiveContainer width="100%" height={Math.max(chartData.length * 40, 200)}>
-                <BarChart data={chartData} layout="vertical" margin={{ top: 5, right: 60, left: 10, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="hsl(var(--border))" />
-                  <XAxis
-                    type="number"
-                    domain={[0, (max: number) => Math.ceil(max * 1.1) || 10]}
-                    tickFormatter={(v: number) => `${v}%`}
-                    tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
-                  />
-                  <YAxis
-                    type="category"
-                    dataKey="name"
-                    width={180}
-                    tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
-                  />
-                  <RechartsTooltip
-                    formatter={(value: number) => [`${value.toFixed(1)}%`, '6+ Weeks %']}
-                    contentStyle={{ borderRadius: 8, border: '1px solid hsl(var(--border))', backgroundColor: 'hsl(var(--card))' }}
-                  />
-                  <ReferenceLine x={1} stroke="#9CA3AF" strokeDasharray="6 4" label={{ value: '1% standard', position: 'top', fontSize: 10, fill: '#9CA3AF' }} />
-                  <Bar dataKey="pct" radius={[0, 4, 4, 0]} barSize={24}>
-                    {chartData.map((entry, i) => (
-                      <Cell key={i} fill={getBarColor(entry.pct)} />
-                    ))}
-                    <LabelList dataKey="pct" position="right" formatter={(v: number) => `${v.toFixed(1)}%`} style={{ fontSize: 11, fill: 'hsl(var(--foreground))' }} />
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+            {/* Horizontal Bar Chart – scrollable on mobile */}
+            <div className="px-6 lg:px-8 pb-6 overflow-x-auto">
+              <div style={{ minWidth: 500 }}>
+                <ResponsiveContainer width="100%" height={Math.max(chartData.length * 40, 200)}>
+                  <BarChart data={chartData} layout="vertical" margin={{ top: 5, right: 60, left: 10, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="hsl(var(--border))" />
+                    <XAxis
+                      type="number"
+                      domain={[0, (max: number) => Math.ceil(max * 1.1) || 10]}
+                      tickFormatter={(v: number) => `${v}%`}
+                      tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                    />
+                    <YAxis
+                      type="category"
+                      dataKey="name"
+                      width={180}
+                      tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                    />
+                    <RechartsTooltip
+                      formatter={(value: number) => [`${value.toFixed(1)}%`, '6+ Weeks %']}
+                      contentStyle={{ borderRadius: 8, border: '1px solid hsl(var(--border))', backgroundColor: 'hsl(var(--card))' }}
+                    />
+                    <ReferenceLine x={1} stroke="#9CA3AF" strokeDasharray="6 4" label={{ value: '1% standard', position: 'top', fontSize: 10, fill: '#9CA3AF' }} />
+                    <Bar dataKey="pct" radius={[0, 4, 4, 0]} barSize={24}>
+                      {chartData.map((entry, i) => (
+                        <Cell key={i} fill={getBarColor(entry.pct)} />
+                      ))}
+                      <LabelList dataKey="pct" position="right" formatter={(v: number) => `${v.toFixed(1)}%`} style={{ fontSize: 11, fill: 'hsl(var(--foreground))' }} />
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
 
-            {/* Data Table */}
+            {/* Data Table – horizontally scrollable */}
             <div className="px-6 lg:px-8 pb-6 overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full text-sm min-w-[600px]">
                 <thead>
                   <tr className="border-b border-border">
                     <SortHeader label="Test Name" field="test_description" />
@@ -382,6 +523,7 @@ export default function LiveData() {
             </div>
           </div>
         )}
+
         {/* ── Trend Analysis ─────────────────────────────── */}
         {data && !loading && trendData.length > 1 && (() => {
           const trendChartData = trendData.map(t => ({
@@ -393,7 +535,6 @@ export default function LiveData() {
           const previous = trendData.length >= 2 ? trendData[trendData.length - 2] : null;
           const momChange = previous ? Math.round((current.percent_6_plus_weeks - previous.percent_6_plus_weeks) * 100) / 100 : 0;
 
-          // Simple linear trend: compare first half avg to second half avg
           const mid = Math.floor(trendData.length / 2);
           const firstHalfAvg = trendData.slice(0, mid).reduce((s, t) => s + t.percent_6_plus_weeks, 0) / mid;
           const secondHalfAvg = trendData.slice(mid).reduce((s, t) => s + t.percent_6_plus_weeks, 0) / (trendData.length - mid);
@@ -402,21 +543,17 @@ export default function LiveData() {
           const maxPct = Math.max(...trendData.map(t => t.percent_6_plus_weeks));
 
           return (
-            <div className="w-full bg-card rounded-xl border border-border shadow-sm">
+            <div className="w-full bg-card rounded-xl border border-border shadow-sm print:shadow-none">
               <div className="p-6 lg:p-8 pb-4">
                 <h3 className="text-xl font-bold text-foreground">Trend Analysis</h3>
                 <p className="text-sm text-muted-foreground mt-1">6+ week waiting percentage over time</p>
               </div>
 
-              {/* Line/Area Chart */}
               <div className="px-6 lg:px-8 pb-6">
                 <ResponsiveContainer width="100%" height={300}>
                   <AreaChart data={trendChartData} margin={{ top: 10, right: 30, left: 10, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis
-                      dataKey="period"
-                      tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
-                    />
+                    <XAxis dataKey="period" tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
                     <YAxis
                       domain={[0, Math.ceil(Math.max(maxPct * 1.2, 6))]}
                       tickFormatter={(v: number) => `${v}%`}
@@ -447,9 +584,7 @@ export default function LiveData() {
                 </ResponsiveContainer>
               </div>
 
-              {/* Trend Summary Cards */}
               <div className="px-6 lg:px-8 pb-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {/* Current Month */}
                 <div className="rounded-lg border border-border p-4">
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Current Month</p>
                   <div className="flex items-baseline gap-2 mt-2">
@@ -460,7 +595,6 @@ export default function LiveData() {
                   </div>
                 </div>
 
-                {/* Month-on-Month Change */}
                 <div className="rounded-lg border border-border p-4">
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Month-on-Month Change</p>
                   <div className="flex items-center gap-2 mt-2">
@@ -480,7 +614,6 @@ export default function LiveData() {
                   </p>
                 </div>
 
-                {/* 6-Month Trend */}
                 <div className="rounded-lg border border-border p-4">
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">6-Month Trend</p>
                   <div className="flex items-center gap-2 mt-2">
@@ -521,9 +654,63 @@ export default function LiveData() {
         {data && !loading && trendData.length > 2 && (
           <PredictiveRiskCard trendData={trendData} tests={data.tests} />
         )}
+
+        {/* ── About This Data (collapsible) ──────────────── */}
+        <Collapsible open={aboutOpen} onOpenChange={setAboutOpen} className="print:hidden">
+          <div className="w-full bg-card rounded-xl border border-border shadow-sm">
+            <CollapsibleTrigger asChild>
+              <button className="w-full p-6 flex items-center justify-between text-left hover:bg-muted/30 transition-colors rounded-xl">
+                <div className="flex items-center gap-2">
+                  <Info className="h-5 w-5 text-primary" />
+                  <span className="font-semibold text-foreground">About This Data</span>
+                </div>
+                <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${aboutOpen ? 'rotate-180' : ''}`} />
+              </button>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="px-6 pb-6 space-y-3 text-sm text-muted-foreground">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <p className="font-medium text-foreground">Data Source</p>
+                    <p>NHS England Monthly Diagnostic Waiting Times and Activity (DM01)</p>
+                  </div>
+                  <div>
+                    <p className="font-medium text-foreground">Collection</p>
+                    <p>DM01 return, submitted by all NHS providers monthly</p>
+                  </div>
+                  <div>
+                    <p className="font-medium text-foreground">Operational Standard</p>
+                    <p>Less than 1% of patients should wait 6+ weeks for a diagnostic test</p>
+                  </div>
+                  <div>
+                    <p className="font-medium text-foreground">Coverage</p>
+                    <p>15 key diagnostic tests across ~133 acute trusts</p>
+                  </div>
+                  <div>
+                    <p className="font-medium text-foreground">Publication</p>
+                    <p>Monthly, typically 4-6 weeks after reporting period</p>
+                  </div>
+                  <div>
+                    <p className="font-medium text-foreground">Guidance</p>
+                    <a
+                      href="https://www.england.nhs.uk/statistics/statistical-work-areas/diagnostics-waiting-times-and-activity/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline inline-flex items-center gap-1"
+                    >
+                      NHS England DM01 guidance <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </CollapsibleContent>
+          </div>
+        </Collapsible>
       </main>
 
-      <StatusFooter onOpenMethodology={() => setIsMethodologyOpen(true)} />
+      <div className="print:hidden">
+        <StatusFooter onOpenMethodology={() => setIsMethodologyOpen(true)} />
+      </div>
     </div>
   );
 }
