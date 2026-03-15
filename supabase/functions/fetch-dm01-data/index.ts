@@ -138,13 +138,46 @@ Deno.serve(async (req) => {
     // ── 3. Parse the spreadsheet ────────────────────────────────
     const workbook = XLSX.read(buffer, { type: "array" });
     
-    // Find the correct sheet - prefer one named "Provider"
+    console.log("All sheet names:", workbook.SheetNames);
+    
+    // The DM01 Provider file may have multiple sheets. We need the one with
+    // per-test (per-modality) breakdown, not the aggregate "Provider" summary.
+    // Look for sheets in priority order: per-test sheets first, then provider summary.
     let sheetName = workbook.SheetNames[0];
+    let foundPerTestSheet = false;
+    
+    // Priority 1: Look for a sheet with per-test/per-modality data
     for (const name of workbook.SheetNames) {
       const n = name.toLowerCase();
-      if (n.includes("provider") || n.includes("data") || n.includes("dm01")) {
+      if (n.includes("test") || n.includes("modality") || n.includes("by test") || n.includes("procedure")) {
         sheetName = name;
+        foundPerTestSheet = true;
         break;
+      }
+    }
+    
+    // Priority 2: If no per-test sheet, use the first sheet (which often has detailed data)
+    // but NOT the "Provider" summary sheet if alternatives exist
+    if (!foundPerTestSheet && workbook.SheetNames.length > 1) {
+      // Check if first sheet has more rows than "Provider" sheet - that's likely the detailed one
+      for (const name of workbook.SheetNames) {
+        const n = name.toLowerCase();
+        if (!n.includes("provider") && !n.includes("note") && !n.includes("content")) {
+          sheetName = name;
+          foundPerTestSheet = true;
+          break;
+        }
+      }
+    }
+    
+    // Priority 3: Fall back to Provider sheet (we'll handle aggregation differently)
+    if (!foundPerTestSheet) {
+      for (const name of workbook.SheetNames) {
+        const n = name.toLowerCase();
+        if (n.includes("provider") || n.includes("data") || n.includes("dm01")) {
+          sheetName = name;
+          break;
+        }
       }
     }
     
@@ -194,7 +227,7 @@ Deno.serve(async (req) => {
       if (hasData) rows.push(row);
     }
     
-    console.log(`Using sheet: ${sheetName}, header row: ${headerRowIdx}, data rows: ${rows.length}, columns: ${headerRow.slice(0, 6).join(', ')}`);
+    console.log(`Using sheet: ${sheetName}, header row: ${headerRowIdx}, data rows: ${rows.length}, columns: ${headerRow.slice(0, 8).join(', ')}`);
 
     if (!rows.length) {
       return new Response(
@@ -207,14 +240,27 @@ Deno.serve(async (req) => {
     const headers = Object.keys(rows[0]);
     const findCol = (patterns: string[]) =>
       headers.find((h) => patterns.some((p) => norm(h).includes(p)));
+    
+    // findCol with exclusion patterns to avoid matching wrong columns
+    const findColExclude = (patterns: string[], excludePatterns: string[]) =>
+      headers.find((h) => {
+        const n = norm(h);
+        return patterns.some((p) => n.includes(p)) && !excludePatterns.some((e) => n.includes(e));
+      });
 
     const providerCodeCol =
       findCol(["provider code", "org code", "organisation code"]) ?? headers[0];
     const providerNameCol =
       findCol(["provider name", "org name", "organisation name"]) ?? headers[1];
+    
+    // "Diagnostic Test Name" must be preferred over "Diagnostic ID"
     const testNameCol =
-      findCol(["diagnostic test", "test name", "procedure", "diagnostic"]) ??
+      findCol(["diagnostic test name", "test name"]) ??
+      findColExclude(["diagnostic test", "procedure", "diagnostic"], ["id", "planned", "unscheduled", "waiting list"]) ??
       headers[2];
+    
+    // Diagnostic ID column (numeric test identifier)
+    const diagnosticIdCol = findCol(["diagnostic id"]);
 
     const totalWaitingCol = findCol(["total waiting", "total wl", "total list"]);
     // Direct "Number waiting 6+ Weeks" column
@@ -228,12 +274,14 @@ Deno.serve(async (req) => {
       return /\d+\s*[<>]\s*\d+/.test(n) || /\d+\s*[-–]\s*\d+/.test(n) || /\d+\s*\+/.test(n);
     });
 
-    const activityCol = findCol(["activity", "total activity"]);
+    // Activity: prefer "planned tests / procedures" column
+    const activityCol = findCol(["planned tests", "total activity", "activity"]);
 
     console.log("Detected columns:", {
       providerCodeCol,
       providerNameCol,
       testNameCol,
+      diagnosticIdCol,
       totalWaitingCol,
       numberWaiting6PlusCol,
       pctWaiting6PlusCol,
@@ -242,12 +290,18 @@ Deno.serve(async (req) => {
     });
 
     // ── 5. Filter rows for the requested provider ───────────────
-    const providerRows = rows.filter(
-      (r) =>
-        String(r[providerCodeCol] ?? "")
-          .trim()
-          .toUpperCase() === providerCode.toUpperCase()
-    );
+    // Exclude total/summary rows: if there's a Diagnostic ID column, filter out
+    // rows where the test name looks like a total (e.g. "Total" or blank)
+    const providerRows = rows.filter((r) => {
+      const code = String(r[providerCodeCol] ?? "").trim().toUpperCase();
+      if (code !== providerCode.toUpperCase()) return false;
+      
+      // Exclude total/aggregate rows
+      const testName = String(r[testNameCol] ?? "").trim().toLowerCase();
+      if (testName === "total" || testName === "all" || testName === "") return false;
+      
+      return true;
+    });
 
     if (!providerRows.length) {
       return new Response(
@@ -280,6 +334,19 @@ Deno.serve(async (req) => {
 
     const tests: TestRow[] = providerRows.map((r) => {
       const testName = String(r[testNameCol] ?? "Unknown").trim();
+      
+      // Use Diagnostic ID as a stable code if available, otherwise derive from name
+      let testCode: string;
+      if (diagnosticIdCol && r[diagnosticIdCol] !== undefined && r[diagnosticIdCol] !== "") {
+        testCode = String(toNum(r[diagnosticIdCol]));
+      } else {
+        testCode = testName
+          .replace(/[^a-zA-Z0-9 ]/g, "")
+          .split(/\s+/)
+          .slice(0, 3)
+          .map((w) => w.charAt(0).toUpperCase())
+          .join("") || "UNK";
+      }
 
       // Total waiting list
       let totalWaiting = Math.round(totalWaitingCol ? toNum(r[totalWaitingCol]) : 0);
@@ -303,18 +370,10 @@ Deno.serve(async (req) => {
         pct = Math.round((waiting6Plus / totalWaiting) * 10000) / 100;
       }
 
-      const activity = activityCol ? toNum(r[activityCol]) : 0;
-
-      // Derive a short test code from the name
-      const testCode = testName
-        .replace(/[^a-zA-Z0-9 ]/g, "")
-        .split(/\s+/)
-        .slice(0, 3)
-        .map((w) => w.charAt(0).toUpperCase())
-        .join("");
+      const activity = activityCol ? Math.round(toNum(r[activityCol])) : 0;
 
       return {
-        test_code: testCode || "UNK",
+        test_code: testCode,
         test_description: testName,
         total_waiting_list: totalWaiting,
         waiting_6_plus_weeks: waiting6Plus,
@@ -399,6 +458,7 @@ Deno.serve(async (req) => {
         total_waiting_6_plus_weeks: summaryWaiting6Plus,
         percent_6_plus_weeks: summaryPct,
         total_activity: summaryActivity,
+        test_count: tests.length,
         status,
       },
       tests,
