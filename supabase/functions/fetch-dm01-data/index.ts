@@ -128,45 +128,32 @@ Deno.serve(async (req) => {
   try {
     const { providerCode = "R0A", period = "2025-07" } = await req.json();
 
-    // ── 1. Resolve the XLS URL ──────────────────────────────────
-    let xlsUrl = KNOWN_URLS[period] ?? null;
-    if (!xlsUrl) {
-      xlsUrl = await discoverProviderXlsUrl(period);
-    }
-    if (!xlsUrl) {
-      return new Response(
-        JSON.stringify({ error: `No DM01 data URL found for period ${period}` }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // ── 2. Download the XLS file ────────────────────────────────
-    console.log(`Fetching XLS from ${xlsUrl}`);
-    const xlsRes = await fetch(xlsUrl, {
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; LovableBot/1.0)" },
-    });
-    if (!xlsRes.ok) {
-      // Try discovery as fallback if hardcoded URL failed
+    // ── 1. Resolve and download the XLS file ──────────────────
+    // Build a prioritised list of URLs to try
+    const urlsToTry: string[] = [];
+    
+    // First: hardcoded known URL
+    if (KNOWN_URLS[period]) urlsToTry.push(KNOWN_URLS[period]);
+    
+    // Second: generated candidate URLs based on common NHS patterns
+    urlsToTry.push(...generateCandidateUrls(period));
+    
+    // Try all candidate URLs first (fast, no page scraping needed)
+    let buffer = await tryFetchUrls(urlsToTry);
+    
+    // Third: try discovery from HTML page as last resort
+    if (!buffer) {
       const discovered = await discoverProviderXlsUrl(period);
-      if (discovered && discovered !== xlsUrl) {
-        const retryRes = await fetch(discovered, {
-          headers: { "User-Agent": "Mozilla/5.0 (compatible; LovableBot/1.0)" },
-        });
-        if (!retryRes.ok) {
-          return new Response(
-            JSON.stringify({ error: "Could not fetch DM01 data from NHS England" }),
-            { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-        var buffer = new Uint8Array(await retryRes.arrayBuffer());
-      } else {
-        return new Response(
-          JSON.stringify({ error: "Could not fetch DM01 data from NHS England" }),
-          { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+      if (discovered) {
+        buffer = await tryFetchUrls([discovered]);
       }
-    } else {
-      var buffer = new Uint8Array(await xlsRes.arrayBuffer());
+    }
+    
+    if (!buffer) {
+      return new Response(
+        JSON.stringify({ error: "Could not fetch DM01 data from NHS England" }),
+        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     // ── 3. Parse the spreadsheet ────────────────────────────────
