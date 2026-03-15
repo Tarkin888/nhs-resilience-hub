@@ -155,27 +155,30 @@ Deno.serve(async (req) => {
     // Convert to array-of-arrays to scan for the header row.
     const rawRows: unknown[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
     
+    // Dump first 20 rows to understand structure
+    for (let i = 0; i < Math.min(rawRows.length, 20); i++) {
+      console.log(`Row ${i}: ${rawRows[i].slice(0, 12).map(c => String(c ?? "")).join(' | ')}`);
+    }
+    
     let headerRowIdx = -1;
     for (let i = 0; i < Math.min(rawRows.length, 30); i++) {
       const cells = rawRows[i].map(c => norm(c));
-      const rowStr = cells.join(" ");
-      // The real header row has multiple specific column names, not just "Provider"
+      // The real header row should have MANY non-empty cells and specific patterns
+      const nonEmpty = cells.filter(c => c.length > 0).length;
       const hasProviderCode = cells.some(c => c.includes("provider code") || c.includes("org code") || c.includes("organisation code"));
-      const hasWeekBands = cells.some(c => /\d+\s*[-–]\s*\d+/.test(c) || /\d+\s*\+/.test(c) || c.includes("weeks"));
-      const hasTotalWaiting = rowStr.includes("total") && (rowStr.includes("waiting") || rowStr.includes("wl") || rowStr.includes("list"));
+      const hasWeekBands = cells.some(c => /\d+\s*[-–]\s*\d+/.test(c) || /\d+\s*\+/.test(c));
+      const hasTotalWaiting = cells.some(c => c.includes("total waiting") || c.includes("total wl"));
+      const hasDiagnostic = cells.some(c => c.includes("diagnostic") || c.includes("test"));
       
-      if (hasProviderCode || (hasWeekBands && hasTotalWaiting)) {
+      // Require at least 5 non-empty cells AND provider code or (week bands AND total)
+      if (nonEmpty >= 5 && (hasProviderCode || (hasWeekBands && (hasTotalWaiting || hasDiagnostic)))) {
         headerRowIdx = i;
-        console.log(`Found header row at index ${i}: ${rawRows[i].slice(0, 8).map(c => String(c)).join(' | ')}`);
+        console.log(`Found header row at index ${i}`);
         break;
       }
     }
     
     if (headerRowIdx === -1) {
-      // Dump first 15 rows for debugging
-      for (let i = 0; i < Math.min(rawRows.length, 15); i++) {
-        console.log(`Row ${i}: ${rawRows[i].slice(0, 8).map(c => String(c)).join(' | ')}`);
-      }
       return new Response(
         JSON.stringify({ error: "Could not find data header row in spreadsheet" }),
         { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } }
