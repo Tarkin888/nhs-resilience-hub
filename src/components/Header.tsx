@@ -60,6 +60,7 @@ const Header = ({
                   </span>
                   {isLiveDataActive && <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-primary rounded-full" />}
                 </Link>
+              </nav>
             </div>
 
             {/* Right: Live Clock and Actions */}
