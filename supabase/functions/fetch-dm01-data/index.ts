@@ -138,7 +138,7 @@ Deno.serve(async (req) => {
     // ── 3. Parse the spreadsheet ────────────────────────────────
     const workbook = XLSX.read(buffer, { type: "array" });
     
-    // Find the correct sheet - look for one containing provider data, not the cover page
+    // Find the correct sheet - prefer one named "Provider"
     let sheetName = workbook.SheetNames[0];
     for (const name of workbook.SheetNames) {
       const n = name.toLowerCase();
@@ -148,33 +148,38 @@ Deno.serve(async (req) => {
       }
     }
     
-    // If first sheet looks like a cover page, try subsequent sheets
-    let sheet = workbook.Sheets[sheetName];
-    let rows: Record<string, unknown>[] = XLSX.utils.sheet_to_json(sheet, { defval: 0 });
+    const sheet = workbook.Sheets[sheetName];
     
-    // Check if parsed rows have provider-like columns; if not try other sheets
-    const hasProviderCols = (r: Record<string, unknown>[]) => {
-      if (!r.length) return false;
-      const keys = Object.keys(r[0]).map(k => norm(k));
-      return keys.some(k => k.includes("provider") || k.includes("org code"));
-    };
+    // NHS XLS files have title rows at the top before the actual data headers.
+    // We need to find the row that contains column headers like "Provider Code" etc.
+    // Convert to array-of-arrays to scan for the header row.
+    const rawRows: unknown[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
     
-    if (!hasProviderCols(rows)) {
-      for (const name of workbook.SheetNames) {
-        if (name === sheetName) continue;
-        const altSheet = workbook.Sheets[name];
-        const altRows: Record<string, unknown>[] = XLSX.utils.sheet_to_json(altSheet, { defval: 0 });
-        if (hasProviderCols(altRows)) {
-          console.log(`Switched to sheet: ${name}`);
-          sheetName = name;
-          sheet = altSheet;
-          rows = altRows;
-          break;
-        }
+    let headerRowIdx = 0;
+    for (let i = 0; i < Math.min(rawRows.length, 20); i++) {
+      const rowStr = rawRows[i].map(c => norm(c)).join(" ");
+      if (rowStr.includes("provider") || rowStr.includes("org code") || rowStr.includes("organisation code")) {
+        headerRowIdx = i;
+        console.log(`Found header row at index ${i}: ${rawRows[i].slice(0, 5).join(', ')}`);
+        break;
       }
     }
     
-    console.log(`Using sheet: ${sheetName}, rows: ${rows.length}, columns: ${rows.length ? Object.keys(rows[0]).slice(0, 5).join(', ') : 'none'}`);
+    // Parse using the detected header row
+    const headerRow = rawRows[headerRowIdx].map(c => String(c ?? "").trim());
+    const rows: Record<string, unknown>[] = [];
+    for (let i = headerRowIdx + 1; i < rawRows.length; i++) {
+      const row: Record<string, unknown> = {};
+      for (let j = 0; j < headerRow.length; j++) {
+        const key = headerRow[j] || `col_${j}`;
+        row[key] = rawRows[i]?.[j] ?? 0;
+      }
+      // Skip empty rows
+      const hasData = Object.values(row).some(v => v !== "" && v !== 0);
+      if (hasData) rows.push(row);
+    }
+    
+    console.log(`Using sheet: ${sheetName}, header row: ${headerRowIdx}, data rows: ${rows.length}, columns: ${headerRow.slice(0, 6).join(', ')}`);
 
     if (!rows.length) {
       return new Response(
