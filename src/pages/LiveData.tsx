@@ -15,6 +15,7 @@ import {
 } from 'recharts';
 import Header from '@/components/Header';
 import StatusFooter from '@/components/StatusFooter';
+import PredictiveRiskCard from '@/components/live-data/PredictiveRiskCard';
 import { supabase } from '@/integrations/supabase/client';
 
 const PROVIDERS = [
@@ -514,6 +515,11 @@ export default function LiveData() {
               <p className="text-sm text-muted-foreground">Loading trend data...</p>
             </CardContent>
           </Card>
+        )}
+
+        {/* ── Predictive Risk Assessment ──────────────────── */}
+        {data && !loading && trendData.length > 2 && (
+          <PredictiveRiskCard trendData={trendData} tests={data.tests} />
         )}
       </main>
 
