@@ -293,6 +293,7 @@ Deno.serve(async (req) => {
       providerCodeCol,
       providerNameCol,
       testNameCol,
+      diagnosticIdCol,
       totalWaitingCol,
       numberWaiting6PlusCol,
       pctWaiting6PlusCol,
@@ -301,12 +302,18 @@ Deno.serve(async (req) => {
     });
 
     // ── 5. Filter rows for the requested provider ───────────────
-    const providerRows = rows.filter(
-      (r) =>
-        String(r[providerCodeCol] ?? "")
-          .trim()
-          .toUpperCase() === providerCode.toUpperCase()
-    );
+    // Exclude total/summary rows: if there's a Diagnostic ID column, filter out
+    // rows where the test name looks like a total (e.g. "Total" or blank)
+    const providerRows = rows.filter((r) => {
+      const code = String(r[providerCodeCol] ?? "").trim().toUpperCase();
+      if (code !== providerCode.toUpperCase()) return false;
+      
+      // Exclude total/aggregate rows
+      const testName = String(r[testNameCol] ?? "").trim().toLowerCase();
+      if (testName === "total" || testName === "all" || testName === "") return false;
+      
+      return true;
+    });
 
     if (!providerRows.length) {
       return new Response(
@@ -339,6 +346,19 @@ Deno.serve(async (req) => {
 
     const tests: TestRow[] = providerRows.map((r) => {
       const testName = String(r[testNameCol] ?? "Unknown").trim();
+      
+      // Use Diagnostic ID as a stable code if available, otherwise derive from name
+      let testCode: string;
+      if (diagnosticIdCol && r[diagnosticIdCol] !== undefined && r[diagnosticIdCol] !== "") {
+        testCode = String(toNum(r[diagnosticIdCol]));
+      } else {
+        testCode = testName
+          .replace(/[^a-zA-Z0-9 ]/g, "")
+          .split(/\s+/)
+          .slice(0, 3)
+          .map((w) => w.charAt(0).toUpperCase())
+          .join("") || "UNK";
+      }
 
       // Total waiting list
       let totalWaiting = Math.round(totalWaitingCol ? toNum(r[totalWaitingCol]) : 0);
@@ -362,18 +382,10 @@ Deno.serve(async (req) => {
         pct = Math.round((waiting6Plus / totalWaiting) * 10000) / 100;
       }
 
-      const activity = activityCol ? toNum(r[activityCol]) : 0;
-
-      // Derive a short test code from the name
-      const testCode = testName
-        .replace(/[^a-zA-Z0-9 ]/g, "")
-        .split(/\s+/)
-        .slice(0, 3)
-        .map((w) => w.charAt(0).toUpperCase())
-        .join("");
+      const activity = activityCol ? Math.round(toNum(r[activityCol])) : 0;
 
       return {
-        test_code: testCode || "UNK",
+        test_code: testCode,
         test_description: testName,
         total_waiting_list: totalWaiting,
         waiting_6_plus_weeks: waiting6Plus,
