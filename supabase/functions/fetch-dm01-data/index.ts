@@ -155,14 +155,31 @@ Deno.serve(async (req) => {
     // Convert to array-of-arrays to scan for the header row.
     const rawRows: unknown[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
     
-    let headerRowIdx = 0;
-    for (let i = 0; i < Math.min(rawRows.length, 20); i++) {
-      const rowStr = rawRows[i].map(c => norm(c)).join(" ");
-      if (rowStr.includes("provider") || rowStr.includes("org code") || rowStr.includes("organisation code")) {
+    let headerRowIdx = -1;
+    for (let i = 0; i < Math.min(rawRows.length, 30); i++) {
+      const cells = rawRows[i].map(c => norm(c));
+      const rowStr = cells.join(" ");
+      // The real header row has multiple specific column names, not just "Provider"
+      const hasProviderCode = cells.some(c => c.includes("provider code") || c.includes("org code") || c.includes("organisation code"));
+      const hasWeekBands = cells.some(c => /\d+\s*[-–]\s*\d+/.test(c) || /\d+\s*\+/.test(c) || c.includes("weeks"));
+      const hasTotalWaiting = rowStr.includes("total") && (rowStr.includes("waiting") || rowStr.includes("wl") || rowStr.includes("list"));
+      
+      if (hasProviderCode || (hasWeekBands && hasTotalWaiting)) {
         headerRowIdx = i;
-        console.log(`Found header row at index ${i}: ${rawRows[i].slice(0, 5).join(', ')}`);
+        console.log(`Found header row at index ${i}: ${rawRows[i].slice(0, 8).map(c => String(c)).join(' | ')}`);
         break;
       }
+    }
+    
+    if (headerRowIdx === -1) {
+      // Dump first 15 rows for debugging
+      for (let i = 0; i < Math.min(rawRows.length, 15); i++) {
+        console.log(`Row ${i}: ${rawRows[i].slice(0, 8).map(c => String(c)).join(' | ')}`);
+      }
+      return new Response(
+        JSON.stringify({ error: "Could not find data header row in spreadsheet" }),
+        { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
     
     // Parse using the detected header row
