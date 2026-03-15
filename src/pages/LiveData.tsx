@@ -300,7 +300,7 @@ export default function LiveData() {
                     width={180}
                     tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
                   />
-                  <Tooltip
+                  <RechartsTooltip
                     formatter={(value: number) => [`${value.toFixed(1)}%`, '6+ Weeks %']}
                     contentStyle={{ borderRadius: 8, border: '1px solid hsl(var(--border))', backgroundColor: 'hsl(var(--card))' }}
                   />
