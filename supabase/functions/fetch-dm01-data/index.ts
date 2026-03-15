@@ -252,14 +252,27 @@ Deno.serve(async (req) => {
     const headers = Object.keys(rows[0]);
     const findCol = (patterns: string[]) =>
       headers.find((h) => patterns.some((p) => norm(h).includes(p)));
+    
+    // findCol with exclusion patterns to avoid matching wrong columns
+    const findColExclude = (patterns: string[], excludePatterns: string[]) =>
+      headers.find((h) => {
+        const n = norm(h);
+        return patterns.some((p) => n.includes(p)) && !excludePatterns.some((e) => n.includes(e));
+      });
 
     const providerCodeCol =
       findCol(["provider code", "org code", "organisation code"]) ?? headers[0];
     const providerNameCol =
       findCol(["provider name", "org name", "organisation name"]) ?? headers[1];
+    
+    // "Diagnostic Test Name" must be preferred over "Diagnostic ID"
     const testNameCol =
-      findCol(["diagnostic test", "test name", "procedure", "diagnostic"]) ??
+      findCol(["diagnostic test name", "test name"]) ??
+      findColExclude(["diagnostic test", "procedure", "diagnostic"], ["id", "planned", "unscheduled", "waiting list"]) ??
       headers[2];
+    
+    // Diagnostic ID column (numeric test identifier)
+    const diagnosticIdCol = findCol(["diagnostic id"]);
 
     const totalWaitingCol = findCol(["total waiting", "total wl", "total list"]);
     // Direct "Number waiting 6+ Weeks" column
@@ -273,7 +286,8 @@ Deno.serve(async (req) => {
       return /\d+\s*[<>]\s*\d+/.test(n) || /\d+\s*[-–]\s*\d+/.test(n) || /\d+\s*\+/.test(n);
     });
 
-    const activityCol = findCol(["activity", "total activity"]);
+    // Activity: prefer "planned tests / procedures" column
+    const activityCol = findCol(["planned tests", "total activity", "activity"]);
 
     console.log("Detected columns:", {
       providerCodeCol,
