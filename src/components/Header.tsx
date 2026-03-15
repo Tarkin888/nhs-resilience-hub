@@ -19,6 +19,7 @@ const Header = ({
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const isServicesActive = location.pathname.startsWith('/services');
   const isScenariosActive = location.pathname.startsWith('/scenarios');
+  const isLiveDataActive = location.pathname === '/live-data';
   return <>
       <header data-tour="header" className="bg-card border-b shadow-card">
         <div className="max-w-[1400px] mx-auto px-4 md:px-8 py-4 md:py-5">
