@@ -381,6 +381,140 @@ export default function LiveData() {
             </div>
           </div>
         )}
+        {/* ── Trend Analysis ─────────────────────────────── */}
+        {data && !loading && trendData.length > 1 && (() => {
+          const trendChartData = trendData.map(t => ({
+            period: formatPeriodShort(t.period),
+            pct: t.percent_6_plus_weeks,
+          }));
+
+          const current = trendData[trendData.length - 1];
+          const previous = trendData.length >= 2 ? trendData[trendData.length - 2] : null;
+          const momChange = previous ? Math.round((current.percent_6_plus_weeks - previous.percent_6_plus_weeks) * 100) / 100 : 0;
+
+          // Simple linear trend: compare first half avg to second half avg
+          const mid = Math.floor(trendData.length / 2);
+          const firstHalfAvg = trendData.slice(0, mid).reduce((s, t) => s + t.percent_6_plus_weeks, 0) / mid;
+          const secondHalfAvg = trendData.slice(mid).reduce((s, t) => s + t.percent_6_plus_weeks, 0) / (trendData.length - mid);
+          const trendDirection = secondHalfAvg < firstHalfAvg - 0.5 ? 'Improving' : secondHalfAvg > firstHalfAvg + 0.5 ? 'Worsening' : 'Stable';
+
+          const maxPct = Math.max(...trendData.map(t => t.percent_6_plus_weeks));
+
+          return (
+            <div className="w-full bg-card rounded-xl border border-border shadow-sm">
+              <div className="p-6 lg:p-8 pb-4">
+                <h3 className="text-xl font-bold text-foreground">Trend Analysis</h3>
+                <p className="text-sm text-muted-foreground mt-1">6+ week waiting percentage over time</p>
+              </div>
+
+              {/* Line/Area Chart */}
+              <div className="px-6 lg:px-8 pb-6">
+                <ResponsiveContainer width="100%" height={300}>
+                  <AreaChart data={trendChartData} margin={{ top: 10, right: 30, left: 10, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis
+                      dataKey="period"
+                      tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+                    />
+                    <YAxis
+                      domain={[0, Math.ceil(Math.max(maxPct * 1.2, 6))]}
+                      tickFormatter={(v: number) => `${v}%`}
+                      tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                    />
+                    <RechartsTooltip
+                      formatter={(value: number) => [`${value.toFixed(1)}%`, '6+ Weeks %']}
+                      contentStyle={{ borderRadius: 8, border: '1px solid hsl(var(--border))', backgroundColor: 'hsl(var(--card))' }}
+                    />
+                    <ReferenceLine y={1} stroke="#EF4444" strokeDasharray="6 4" label={{ value: '1% Standard', position: 'right', fontSize: 10, fill: '#EF4444' }} />
+                    <ReferenceLine y={5} stroke="#F59E0B" strokeDasharray="6 4" label={{ value: '5% At Risk', position: 'right', fontSize: 10, fill: '#F59E0B' }} />
+                    <defs>
+                      <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#005EB8" stopOpacity={0.2} />
+                        <stop offset="95%" stopColor="#005EB8" stopOpacity={0.02} />
+                      </linearGradient>
+                    </defs>
+                    <Area
+                      type="monotone"
+                      dataKey="pct"
+                      stroke="#005EB8"
+                      strokeWidth={2.5}
+                      fill="url(#trendFill)"
+                      dot={{ r: 5, fill: '#005EB8', stroke: '#fff', strokeWidth: 2 }}
+                      activeDot={{ r: 7, fill: '#005EB8', stroke: '#fff', strokeWidth: 2 }}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Trend Summary Cards */}
+              <div className="px-6 lg:px-8 pb-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {/* Current Month */}
+                <div className="rounded-lg border border-border p-4">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Current Month</p>
+                  <div className="flex items-baseline gap-2 mt-2">
+                    <span className="text-2xl font-bold text-foreground">{current.percent_6_plus_weeks.toFixed(1)}%</span>
+                    <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ${getBadgeClasses(current.percent_6_plus_weeks)}`}>
+                      {current.status}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Month-on-Month Change */}
+                <div className="rounded-lg border border-border p-4">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Month-on-Month Change</p>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="text-2xl font-bold text-foreground">
+                      {momChange > 0 ? '+' : ''}{momChange.toFixed(1)}%
+                    </span>
+                    {momChange > 0.1 ? (
+                      <TrendingUp className="h-5 w-5 text-destructive" />
+                    ) : momChange < -0.1 ? (
+                      <TrendingDown className="h-5 w-5 text-[#10B981]" />
+                    ) : (
+                      <Minus className="h-5 w-5 text-muted-foreground" />
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {momChange > 0.1 ? 'Increased from previous month' : momChange < -0.1 ? 'Decreased from previous month' : 'No significant change'}
+                  </p>
+                </div>
+
+                {/* 6-Month Trend */}
+                <div className="rounded-lg border border-border p-4">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">6-Month Trend</p>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className={`text-2xl font-bold ${
+                      trendDirection === 'Improving' ? 'text-[#10B981]' :
+                      trendDirection === 'Worsening' ? 'text-destructive' : 'text-muted-foreground'
+                    }`}>
+                      {trendDirection}
+                    </span>
+                    {trendDirection === 'Improving' ? (
+                      <TrendingDown className="h-5 w-5 text-[#10B981]" />
+                    ) : trendDirection === 'Worsening' ? (
+                      <TrendingUp className="h-5 w-5 text-destructive" />
+                    ) : (
+                      <Minus className="h-5 w-5 text-muted-foreground" />
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Based on {trendData.length}-month linear trend analysis
+                  </p>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Trend loading state */}
+        {data && !loading && trendLoading && (
+          <Card>
+            <CardContent className="py-8 text-center">
+              <RefreshCw className="h-6 w-6 animate-spin mx-auto text-primary mb-2" />
+              <p className="text-sm text-muted-foreground">Loading trend data...</p>
+            </CardContent>
+          </Card>
+        )}
       </main>
 
       <StatusFooter onOpenMethodology={() => setIsMethodologyOpen(true)} />
