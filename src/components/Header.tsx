@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { HelpCircle, ClipboardList, FlaskConical, FileText } from 'lucide-react';
+import { HelpCircle, ClipboardList, FlaskConical, FileText, Radio } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import MethodologyPanel from './MethodologyPanel';
