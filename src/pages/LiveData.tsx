@@ -241,7 +241,7 @@ export default function LiveData() {
   const chartData = useMemo(() => {
     if (!data) return [];
     return [...data.tests]
-      .sort((a, b) => a.percent_6_plus_weeks - b.percent_6_plus_weeks)
+      .sort((a, b) => b.percent_6_plus_weeks - a.percent_6_plus_weeks)
       .map((t) => ({ name: truncate(t.test_description, 25), pct: t.percent_6_plus_weeks }));
   }, [data]);
 
