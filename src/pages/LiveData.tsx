@@ -28,6 +28,7 @@ import StatusFooter from '@/components/StatusFooter';
 import PredictiveRiskCard from '@/components/live-data/PredictiveRiskCard';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuditTrail } from '@/contexts/AuditTrailContext';
+import DataProvenanceTooltip from '@/components/live-data/DataProvenanceTooltip';
 
 const PROVIDERS = [
   { code: 'R0A', name: 'Manchester University NHS FT' },
@@ -267,7 +268,7 @@ export default function LiveData() {
     if (!data) return [];
     return [...data.tests]
       .sort((a, b) => b.percent_6_plus_weeks - a.percent_6_plus_weeks)
-      .map((t) => ({ name: truncate(t.test_description, 25), pct: t.percent_6_plus_weeks }));
+      .map((t) => ({ name: truncate(t.test_description, 25), fullName: t.test_description, pct: t.percent_6_plus_weeks }));
   }, [data]);
 
   const currentProvider = PROVIDERS.find((p) => p.code === selectedProvider);
@@ -448,17 +449,26 @@ export default function LiveData() {
                 </div>
                 <div className="flex-[2] p-6 lg:p-8 flex flex-col gap-3 lg:border-l border-border">
                   <div className="rounded-lg p-4" style={{ backgroundColor: `${statusColor}10`, border: `1px solid ${statusColor}30` }}>
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Patients Waiting 6+ Weeks</p>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                      Patients Waiting 6+ Weeks
+                      <DataProvenanceTooltip tab="Provider" providerName={data.provider_name} providerCode={data.provider_code} period={periodLabel} fieldDescription={`"Number waiting 6+ Weeks" column → ${data.provider_code} total row\nPercentage = Number waiting 6+ Weeks ÷ Total Waiting List × 100`} />
+                    </p>
                     <p className="text-3xl font-bold mt-1" style={{ color: statusColor }}>{fmt(s.total_waiting_6_plus_weeks)}</p>
                     <p className="text-sm text-muted-foreground mt-0.5">{s.percent_6_plus_weeks.toFixed(1)}% of waiting list</p>
                   </div>
                   <div className="rounded-lg border border-border bg-muted/30 p-4">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total Waiting List</p>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                      Total Waiting List
+                      <DataProvenanceTooltip tab="Provider" providerName={data.provider_name} providerCode={data.provider_code} period={periodLabel} fieldDescription={`"Total Waiting List" column → ${data.provider_code} total row`} />
+                    </p>
                     <p className="text-2xl font-bold text-foreground mt-1">{fmt(s.total_waiting_list)}</p>
                     <p className="text-sm text-muted-foreground mt-0.5">patients across {data.tests.length} {data.tests.length === 1 ? 'test' : 'tests'}</p>
                   </div>
                   <div className="rounded-lg border border-border bg-muted/30 p-4">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Monthly Activity</p>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                      Monthly Activity
+                      <DataProvenanceTooltip tab="Provider by Test" providerName={data.provider_name} providerCode={data.provider_code} period={periodLabel} fieldDescription={`SUM of "Planned tests / procedures" column across all ${data.tests.length} diagnostic test rows for ${data.provider_code}`} />
+                    </p>
                     <p className="text-2xl font-bold text-foreground mt-1">{fmt(s.total_activity)}</p>
                     <p className="text-sm text-muted-foreground mt-0.5">tests completed this month</p>
                   </div>
@@ -502,8 +512,26 @@ export default function LiveData() {
                       tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
                     />
                     <RechartsTooltip
-                      formatter={(value: number) => [`${value.toFixed(1)}%`, '6+ Weeks %']}
-                      contentStyle={{ borderRadius: 8, border: '1px solid hsl(var(--border))', backgroundColor: 'hsl(var(--card))' }}
+                      content={({ active, payload }) => {
+                        if (!active || !payload?.length || !data) return null;
+                        const entry = payload[0].payload;
+                        const [y, m] = data.period.split('-');
+                        const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+                        const periodLabel = `${months[parseInt(m, 10) - 1]} ${y}`;
+                        return (
+                          <div className="rounded-lg p-3 shadow-lg border-0 text-xs leading-relaxed space-y-1.5" style={{ backgroundColor: '#1E293B', color: 'white', maxWidth: 380 }}>
+                            <p className="font-semibold text-sm">{entry.fullName}: {entry.pct.toFixed(1)}%</p>
+                            <div className="border-t border-white/20 pt-1.5 space-y-1">
+                              <p><span className="mr-1.5">📄</span><span className="opacity-60">File:</span> Monthly Diagnostics – Provider – {periodLabel} (XLS)</p>
+                              <p><span className="mr-1.5">📑</span><span className="opacity-60">Tab:</span> Provider by Test</p>
+                              <p><span className="mr-1.5">🏥</span><span className="opacity-60">Provider:</span> {data.provider_name} ({data.provider_code})</p>
+                              <p><span className="mr-1.5">🔬</span><span className="opacity-60">Test:</span> {entry.fullName}</p>
+                              <p><span className="mr-1.5">📊</span><span className="opacity-60">Field:</span> "Percentage waiting 6+ weeks" column</p>
+                              <p><span className="mr-1.5">🔗</span><span className="opacity-60">Source:</span> NHS England DM01 Monthly Diagnostics</p>
+                            </div>
+                          </div>
+                        );
+                      }}
                     />
                     <ReferenceLine x={1} stroke="#9CA3AF" strokeDasharray="6 4" label={{ value: '1% standard', position: 'top', fontSize: 10, fill: '#9CA3AF' }} />
                     <Bar dataKey="pct" radius={[0, 4, 4, 0]} barSize={24}>
@@ -530,19 +558,38 @@ export default function LiveData() {
                   </tr>
                 </thead>
                 <tbody>
-                  {sortedTests.map((t, i) => (
-                    <tr key={t.test_code} className={i % 2 === 0 ? 'bg-muted/20' : ''}>
-                      <td className="px-4 py-3 font-medium text-foreground">{t.test_description}</td>
-                      <td className="px-4 py-3 text-foreground tabular-nums">{fmt(t.total_waiting_list)}</td>
-                      <td className="px-4 py-3 text-foreground tabular-nums">{fmt(t.waiting_6_plus_weeks)}</td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${getBadgeClasses(t.percent_6_plus_weeks)}`}>
-                          {t.percent_6_plus_weeks.toFixed(1)}%
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-foreground tabular-nums">{fmt(t.total_activity)}</td>
-                    </tr>
-                  ))}
+                  {sortedTests.map((t, i) => {
+                    const prov = { providerName: data.provider_name, providerCode: data.provider_code, period: (() => { const [y, m] = data.period.split('-'); const months = ['January','February','March','April','May','June','July','August','September','October','November','December']; return `${months[parseInt(m, 10) - 1]} ${y}`; })(), tab: 'Provider by Test' };
+                    return (
+                      <tr key={t.test_code} className={i % 2 === 0 ? 'bg-muted/20' : ''}>
+                        <td className="px-4 py-3 font-medium text-foreground">{t.test_description}</td>
+                        <td className="px-4 py-3 text-foreground tabular-nums">
+                          <span className="inline-flex items-center gap-1">
+                            {fmt(t.total_waiting_list)}
+                            <DataProvenanceTooltip {...prov} testName={t.test_description} fieldDescription={'"Total Waiting List" column'} />
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-foreground tabular-nums">
+                          <span className="inline-flex items-center gap-1">
+                            {fmt(t.waiting_6_plus_weeks)}
+                            <DataProvenanceTooltip {...prov} testName={t.test_description} fieldDescription={'"Number waiting 6+ Weeks" column'} />
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${getBadgeClasses(t.percent_6_plus_weeks)}`}>
+                            {t.percent_6_plus_weeks.toFixed(1)}%
+                            <DataProvenanceTooltip {...prov} testName={t.test_description} fieldDescription={'"Percentage waiting 6+ weeks" column'} />
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-foreground tabular-nums">
+                          <span className="inline-flex items-center gap-1">
+                            {fmt(t.total_activity)}
+                            <DataProvenanceTooltip {...prov} testName={t.test_description} fieldDescription={'"Planned tests / procedures" column'} />
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
