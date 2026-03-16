@@ -1,5 +1,5 @@
 import { memo, useState } from 'react';
-import { Info } from 'lucide-react';
+import { Info, ExternalLink } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
