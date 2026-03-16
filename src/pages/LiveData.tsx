@@ -449,17 +449,26 @@ export default function LiveData() {
                 </div>
                 <div className="flex-[2] p-6 lg:p-8 flex flex-col gap-3 lg:border-l border-border">
                   <div className="rounded-lg p-4" style={{ backgroundColor: `${statusColor}10`, border: `1px solid ${statusColor}30` }}>
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Patients Waiting 6+ Weeks</p>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                      Patients Waiting 6+ Weeks
+                      <DataProvenanceTooltip tab="Provider" providerName={data.provider_name} providerCode={data.provider_code} period={periodLabel} fieldDescription={`"Number waiting 6+ Weeks" column → ${data.provider_code} total row\nPercentage = Number waiting 6+ Weeks ÷ Total Waiting List × 100`} />
+                    </p>
                     <p className="text-3xl font-bold mt-1" style={{ color: statusColor }}>{fmt(s.total_waiting_6_plus_weeks)}</p>
                     <p className="text-sm text-muted-foreground mt-0.5">{s.percent_6_plus_weeks.toFixed(1)}% of waiting list</p>
                   </div>
                   <div className="rounded-lg border border-border bg-muted/30 p-4">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total Waiting List</p>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                      Total Waiting List
+                      <DataProvenanceTooltip tab="Provider" providerName={data.provider_name} providerCode={data.provider_code} period={periodLabel} fieldDescription={`"Total Waiting List" column → ${data.provider_code} total row`} />
+                    </p>
                     <p className="text-2xl font-bold text-foreground mt-1">{fmt(s.total_waiting_list)}</p>
                     <p className="text-sm text-muted-foreground mt-0.5">patients across {data.tests.length} {data.tests.length === 1 ? 'test' : 'tests'}</p>
                   </div>
                   <div className="rounded-lg border border-border bg-muted/30 p-4">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Monthly Activity</p>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                      Monthly Activity
+                      <DataProvenanceTooltip tab="Provider by Test" providerName={data.provider_name} providerCode={data.provider_code} period={periodLabel} fieldDescription={`SUM of "Planned tests / procedures" column across all ${data.tests.length} diagnostic test rows for ${data.provider_code}`} />
+                    </p>
                     <p className="text-2xl font-bold text-foreground mt-1">{fmt(s.total_activity)}</p>
                     <p className="text-sm text-muted-foreground mt-0.5">tests completed this month</p>
                   </div>
