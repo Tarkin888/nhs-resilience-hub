@@ -1,9 +1,11 @@
-import { memo, useCallback, useState, useEffect } from 'react';
+import { memo, useCallback, useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Bed, UserX, Shield, Calendar, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAnimatedValue } from '@/hooks/useAnimatedValue';
 import LiveMonitoringBadge from './LiveMonitoringBadge';
+import AuditTrailButton from './AuditTrailButton';
+import { useAuditTrail } from '@/contexts/AuditTrailContext';
 import InfoTooltip, { DataSourceInfo, SourceType } from './common/InfoTooltip';
 
 interface StatCard {
