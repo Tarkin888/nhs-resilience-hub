@@ -540,19 +540,38 @@ export default function LiveData() {
                   </tr>
                 </thead>
                 <tbody>
-                  {sortedTests.map((t, i) => (
-                    <tr key={t.test_code} className={i % 2 === 0 ? 'bg-muted/20' : ''}>
-                      <td className="px-4 py-3 font-medium text-foreground">{t.test_description}</td>
-                      <td className="px-4 py-3 text-foreground tabular-nums">{fmt(t.total_waiting_list)}</td>
-                      <td className="px-4 py-3 text-foreground tabular-nums">{fmt(t.waiting_6_plus_weeks)}</td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${getBadgeClasses(t.percent_6_plus_weeks)}`}>
-                          {t.percent_6_plus_weeks.toFixed(1)}%
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-foreground tabular-nums">{fmt(t.total_activity)}</td>
-                    </tr>
-                  ))}
+                  {sortedTests.map((t, i) => {
+                    const prov = { providerName: data.provider_name, providerCode: data.provider_code, period: (() => { const [y, m] = data.period.split('-'); const months = ['January','February','March','April','May','June','July','August','September','October','November','December']; return `${months[parseInt(m, 10) - 1]} ${y}`; })(), tab: 'Provider by Test' };
+                    return (
+                      <tr key={t.test_code} className={i % 2 === 0 ? 'bg-muted/20' : ''}>
+                        <td className="px-4 py-3 font-medium text-foreground">{t.test_description}</td>
+                        <td className="px-4 py-3 text-foreground tabular-nums">
+                          <span className="inline-flex items-center gap-1">
+                            {fmt(t.total_waiting_list)}
+                            <DataProvenanceTooltip {...prov} testName={t.test_description} fieldDescription={'"Total Waiting List" column'} />
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-foreground tabular-nums">
+                          <span className="inline-flex items-center gap-1">
+                            {fmt(t.waiting_6_plus_weeks)}
+                            <DataProvenanceTooltip {...prov} testName={t.test_description} fieldDescription={'"Number waiting 6+ Weeks" column'} />
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${getBadgeClasses(t.percent_6_plus_weeks)}`}>
+                            {t.percent_6_plus_weeks.toFixed(1)}%
+                            <DataProvenanceTooltip {...prov} testName={t.test_description} fieldDescription={'"Percentage waiting 6+ weeks" column'} />
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-foreground tabular-nums">
+                          <span className="inline-flex items-center gap-1">
+                            {fmt(t.total_activity)}
+                            <DataProvenanceTooltip {...prov} testName={t.test_description} fieldDescription={'"Planned tests / procedures" column'} />
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
