@@ -512,8 +512,26 @@ export default function LiveData() {
                       tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
                     />
                     <RechartsTooltip
-                      formatter={(value: number) => [`${value.toFixed(1)}%`, '6+ Weeks %']}
-                      contentStyle={{ borderRadius: 8, border: '1px solid hsl(var(--border))', backgroundColor: 'hsl(var(--card))' }}
+                      content={({ active, payload }) => {
+                        if (!active || !payload?.length || !data) return null;
+                        const entry = payload[0].payload;
+                        const [y, m] = data.period.split('-');
+                        const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+                        const periodLabel = `${months[parseInt(m, 10) - 1]} ${y}`;
+                        return (
+                          <div className="rounded-lg p-3 shadow-lg border-0 text-xs leading-relaxed space-y-1.5" style={{ backgroundColor: '#1E293B', color: 'white', maxWidth: 380 }}>
+                            <p className="font-semibold text-sm">{entry.fullName}: {entry.pct.toFixed(1)}%</p>
+                            <div className="border-t border-white/20 pt-1.5 space-y-1">
+                              <p><span className="mr-1.5">📄</span><span className="opacity-60">File:</span> Monthly Diagnostics – Provider – {periodLabel} (XLS)</p>
+                              <p><span className="mr-1.5">📑</span><span className="opacity-60">Tab:</span> Provider by Test</p>
+                              <p><span className="mr-1.5">🏥</span><span className="opacity-60">Provider:</span> {data.provider_name} ({data.provider_code})</p>
+                              <p><span className="mr-1.5">🔬</span><span className="opacity-60">Test:</span> {entry.fullName}</p>
+                              <p><span className="mr-1.5">📊</span><span className="opacity-60">Field:</span> "Percentage waiting 6+ weeks" column</p>
+                              <p><span className="mr-1.5">🔗</span><span className="opacity-60">Source:</span> NHS England DM01 Monthly Diagnostics</p>
+                            </div>
+                          </div>
+                        );
+                      }}
                     />
                     <ReferenceLine x={1} stroke="#9CA3AF" strokeDasharray="6 4" label={{ value: '1% standard', position: 'top', fontSize: 10, fill: '#9CA3AF' }} />
                     <Bar dataKey="pct" radius={[0, 4, 4, 0]} barSize={24}>
