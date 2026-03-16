@@ -268,7 +268,7 @@ export default function LiveData() {
     if (!data) return [];
     return [...data.tests]
       .sort((a, b) => b.percent_6_plus_weeks - a.percent_6_plus_weeks)
-      .map((t) => ({ name: truncate(t.test_description, 25), pct: t.percent_6_plus_weeks }));
+      .map((t) => ({ name: truncate(t.test_description, 25), fullName: t.test_description, pct: t.percent_6_plus_weeks }));
   }, [data]);
 
   const currentProvider = PROVIDERS.find((p) => p.code === selectedProvider);
