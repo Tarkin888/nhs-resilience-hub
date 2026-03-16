@@ -193,9 +193,16 @@ export default function LiveData() {
 
   const fetchData = async (providerCode?: string) => {
     const code = providerCode ?? selectedProvider;
+    const provider = PROVIDERS.find(p => p.code === code);
+    const providerLabel = provider ? `${provider.name} (${code})` : code;
+    const auditSource = 'NHS England Official Statistics — DM01 Monthly Diagnostics';
+
     setLoading(true);
     setError(null);
     setErrorType('fetch');
+
+    logEntry({ source: auditSource, metric: `Data fetch initiated — ${providerLabel}`, newValue: 'Fetching', category: 'fetch' });
+
     try {
       const { data: result, error: fnError } = await supabase.functions.invoke(
         'fetch-dm01-data',
@@ -207,15 +214,30 @@ export default function LiveData() {
         setErrorType(isProviderError ? 'provider' : 'fetch');
         setError(result.error);
         setData(null);
+        logEntry({ source: auditSource, metric: `Data fetch failed — ${providerLabel}`, newValue: result.error, category: 'fetch' });
       } else {
-        setData(result as DM01Response);
+        const res = result as DM01Response;
+        const periodLabel = (() => { const [y, m] = res.period.split('-'); const months = ['January','February','March','April','May','June','July','August','September','October','November','December']; return `${months[parseInt(m, 10) - 1]} ${y}`; })();
+        const prev = prevData.current;
+
+        // Log summary metrics with old → new values
+        logEntry({ source: auditSource, metric: `Diagnostics Access Performance — DM01 (${providerLabel}, ${periodLabel})`, oldValue: prev ? `${prev.summary.percent_6_plus_weeks.toFixed(1)}%` : undefined, newValue: `${res.summary.percent_6_plus_weeks.toFixed(1)}% waiting 6+ weeks`, category: 'fetch' });
+        logEntry({ source: auditSource, metric: 'Total Waiting List', oldValue: prev ? fmt(prev.summary.total_waiting_list) : undefined, newValue: fmt(res.summary.total_waiting_list), category: 'fetch' });
+        logEntry({ source: auditSource, metric: 'Patients Waiting 6+ Weeks', oldValue: prev ? fmt(prev.summary.total_waiting_6_plus_weeks) : undefined, newValue: fmt(res.summary.total_waiting_6_plus_weeks), category: 'fetch' });
+        logEntry({ source: auditSource, metric: 'Monthly Activity', oldValue: prev ? fmt(prev.summary.total_activity) : undefined, newValue: fmt(res.summary.total_activity), category: 'fetch' });
+        logEntry({ source: auditSource, metric: `Trust: ${providerLabel} — Period: ${periodLabel}`, newValue: `${res.tests.length} diagnostic modalities loaded`, category: 'fetch' });
+
+        prevData.current = res;
+        setData(res);
         setLastRefreshed(new Date());
         fetchTrend(code);
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch data');
+      const msg = err instanceof Error ? err.message : 'Failed to fetch data';
+      setError(msg);
       setErrorType('fetch');
       setData(null);
+      logEntry({ source: auditSource, metric: `Data fetch error — ${providerLabel}`, newValue: msg, category: 'fetch' });
     } finally {
       setLoading(false);
     }
