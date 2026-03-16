@@ -236,9 +236,10 @@ const QuickStatsBar = memo(() => {
     <div className="bg-[hsl(var(--stats-bar))] border-b">
       <div className="max-w-[1400px] mx-auto px-4 md:px-8 py-3">
         <div className="flex flex-col lg:flex-row lg:items-center gap-3 lg:gap-4">
-          {/* Live Monitoring Badge */}
-          <div className="flex-shrink-0">
+          {/* Live Monitoring Badge + Audit Trail */}
+          <div className="flex items-center gap-2 flex-shrink-0">
             <LiveMonitoringBadge />
+            <AuditTrailButton />
           </div>
           
           {/* Quick Stats Grid */}
