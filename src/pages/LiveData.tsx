@@ -159,6 +159,8 @@ export default function LiveData() {
   const [trendLoading, setTrendLoading] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
   const loadingInterval = useRef<ReturnType<typeof setInterval> | null>(null);
+  const prevData = useRef<DM01Response | null>(null);
+  const { logEntry } = useAuditTrail();
 
   // Progressive loading messages
   useEffect(() => {
