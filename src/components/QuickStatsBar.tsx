@@ -1,9 +1,11 @@
-import { memo, useCallback, useState, useEffect } from 'react';
+import { memo, useCallback, useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Bed, UserX, Shield, Calendar, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAnimatedValue } from '@/hooks/useAnimatedValue';
 import LiveMonitoringBadge from './LiveMonitoringBadge';
+import AuditTrailButton from './AuditTrailButton';
+import { useAuditTrail } from '@/contexts/AuditTrailContext';
 import InfoTooltip, { DataSourceInfo, SourceType } from './common/InfoTooltip';
 
 interface StatCard {
@@ -136,10 +138,22 @@ const QuickStatsBar = memo(() => {
   const [bedOccupancy, setBedOccupancy] = useState(87);
   const [staffVacancies, setStaffVacancies] = useState(156);
   const [highlightedStat, setHighlightedStat] = useState<string | null>(null);
+  const { logEntry } = useAuditTrail();
+  const initialMount = useRef(true);
 
   // Animated display values for smooth transitions
   const animatedBedOccupancy = useAnimatedValue(bedOccupancy, 400);
   const animatedStaffVacancies = useAnimatedValue(staffVacancies, 400);
+
+  // Log initial system start
+  useEffect(() => {
+    if (initialMount.current) {
+      initialMount.current = false;
+      logEntry({ source: 'System', metric: 'Dashboard session started', newValue: 'Active', category: 'system' });
+      logEntry({ source: 'Quick Stats', metric: 'Bed Occupancy', newValue: `${87}%`, category: 'vital-sign' });
+      logEntry({ source: 'Quick Stats', metric: 'Staff Vacancies', newValue: '156 FTE', category: 'vital-sign' });
+    }
+  }, []);
 
   // Random updates every 30-90 seconds
   useEffect(() => {
@@ -150,9 +164,11 @@ const QuickStatsBar = memo(() => {
           const change = Math.random() > 0.5 
             ? Math.floor(Math.random() * 2) + 1 
             : -(Math.floor(Math.random() * 2) + 1);
-          const newValue = prev + change;
-          // Keep between 80-94% (realistic range)
-          return Math.max(80, Math.min(94, newValue));
+          const newValue = Math.max(80, Math.min(94, prev + change));
+          if (newValue !== prev) {
+            logEntry({ source: 'Quick Stats', metric: 'Bed Occupancy', oldValue: `${prev}%`, newValue: `${newValue}%`, category: 'vital-sign' });
+          }
+          return newValue;
         });
         setHighlightedStat('bed');
         setTimeout(() => setHighlightedStat(null), 1500);
@@ -164,9 +180,11 @@ const QuickStatsBar = memo(() => {
           const change = Math.random() > 0.5 
             ? Math.floor(Math.random() * 3) + 1 
             : -(Math.floor(Math.random() * 3) + 1);
-          const newValue = prev + change;
-          // Keep between 140-170 FTE (realistic range)
-          return Math.max(140, Math.min(170, newValue));
+          const newValue = Math.max(140, Math.min(170, prev + change));
+          if (newValue !== prev) {
+            logEntry({ source: 'Quick Stats', metric: 'Staff Vacancies', oldValue: `${prev} FTE`, newValue: `${newValue} FTE`, category: 'vital-sign' });
+          }
+          return newValue;
         });
         setHighlightedStat('staff');
         setTimeout(() => setHighlightedStat(null), 1500);
@@ -174,7 +192,7 @@ const QuickStatsBar = memo(() => {
     }, 45000); // Every 45 seconds
 
     return () => clearInterval(updateInterval);
-  }, []);
+  }, [logEntry]);
 
   const stats: StatCard[] = [
     {
@@ -218,9 +236,10 @@ const QuickStatsBar = memo(() => {
     <div className="bg-[hsl(var(--stats-bar))] border-b">
       <div className="max-w-[1400px] mx-auto px-4 md:px-8 py-3">
         <div className="flex flex-col lg:flex-row lg:items-center gap-3 lg:gap-4">
-          {/* Live Monitoring Badge */}
-          <div className="flex-shrink-0">
+          {/* Live Monitoring Badge + Audit Trail */}
+          <div className="flex items-center gap-2 flex-shrink-0">
             <LiveMonitoringBadge />
+            <AuditTrailButton />
           </div>
           
           {/* Quick Stats Grid */}
