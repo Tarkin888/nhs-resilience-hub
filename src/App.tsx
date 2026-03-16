@@ -20,22 +20,25 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/services" element={<ServicesOverview />} />
-          <Route path="/services/:serviceId" element={<ServiceDetail />} />
-          <Route path="/scenarios/exercises" element={<ExerciseLibrary />} />
-          <Route path="/scenarios/results/:resultId" element={<ExerciseResults />} />
-          <Route path="/live-data" element={<LiveData />} />
-          <Route path="/privacy" element={<PrivacyPolicy />} />
-          <Route path="/accessibility" element={<Accessibility />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+      <AuditTrailProvider>
+        <Toaster />
+        <Sonner />
+        <AuditTrailModal />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/services" element={<ServicesOverview />} />
+            <Route path="/services/:serviceId" element={<ServiceDetail />} />
+            <Route path="/scenarios/exercises" element={<ExerciseLibrary />} />
+            <Route path="/scenarios/results/:resultId" element={<ExerciseResults />} />
+            <Route path="/live-data" element={<LiveData />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/accessibility" element={<Accessibility />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </AuditTrailProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
