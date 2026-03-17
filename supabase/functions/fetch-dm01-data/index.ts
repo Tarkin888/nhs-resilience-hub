@@ -73,7 +73,7 @@ async function discoverProviderXlsUrl(period: string): Promise<string | null> {
 /**
  * Try to fetch an XLS file from a list of URLs, returning the first successful buffer.
  */
-async function tryFetchUrls(urls: string[]): Promise<Uint8Array | null> {
+async function tryFetchUrls(urls: string[]): Promise<{ buffer: Uint8Array; url: string } | null> {
   for (const url of urls) {
     try {
       console.log(`Trying URL: ${url}`);
@@ -82,7 +82,7 @@ async function tryFetchUrls(urls: string[]): Promise<Uint8Array | null> {
       });
       if (res.ok) {
         console.log(`Success: ${url}`);
-        return new Uint8Array(await res.arrayBuffer());
+        return { buffer: new Uint8Array(await res.arrayBuffer()), url };
       }
       console.log(`Failed (${res.status}): ${url}`);
     } catch (e) {
