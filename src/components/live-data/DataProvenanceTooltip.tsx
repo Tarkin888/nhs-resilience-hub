@@ -18,11 +18,16 @@ export interface ProvenanceInfo {
   sourceUrl?: string;
 }
 
-const DataProvenanceTooltip = memo(({ tab, providerName, providerCode, period, fieldDescription, testName }: ProvenanceInfo) => {
+const DataProvenanceTooltip = memo(({ tab, providerName, providerCode, period, fieldDescription, testName, sourceUrl }: ProvenanceInfo) => {
   const isMobile = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
 
   const fileName = `Monthly Diagnostics – Provider – ${period} (XLS)`;
+  const sourceHref = sourceUrl
+    ?? 'https://www.england.nhs.uk/statistics/statistical-work-areas/diagnostics-waiting-times-and-activity/monthly-diagnostics-waiting-times-and-activity/';
+  const sourceLabel = sourceUrl
+    ? `Monthly Diagnostics – Provider – ${period} (XLS)`
+    : 'NHS England DM01 Monthly Diagnostics';
 
   const handleClick = (e: React.MouseEvent) => {
     if (isMobile) {
