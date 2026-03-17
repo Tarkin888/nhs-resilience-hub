@@ -15,6 +15,7 @@ export interface ProvenanceInfo {
   period: string;
   fieldDescription: string;
   testName?: string;
+  sourceUrl?: string;
 }
 
 const DataProvenanceTooltip = memo(({ tab, providerName, providerCode, period, fieldDescription, testName }: ProvenanceInfo) => {
