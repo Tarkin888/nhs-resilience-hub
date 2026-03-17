@@ -564,7 +564,7 @@ export default function LiveData() {
                 </thead>
                 <tbody>
                   {sortedTests.map((t, i) => {
-                    const prov = { providerName: data.provider_name, providerCode: data.provider_code, period: (() => { const [y, m] = data.period.split('-'); const months = ['January','February','March','April','May','June','July','August','September','October','November','December']; return `${months[parseInt(m, 10) - 1]} ${y}`; })(), tab: 'Provider by Test' };
+                    const prov = { providerName: data.provider_name, providerCode: data.provider_code, period: (() => { const [y, m] = data.period.split('-'); const months = ['January','February','March','April','May','June','July','August','September','October','November','December']; return `${months[parseInt(m, 10) - 1]} ${y}`; })(), tab: 'Provider by Test', sourceUrl: data.meta?.source_url };
                     return (
                       <tr key={t.test_code} className={i % 2 === 0 ? 'bg-muted/20' : ''}>
                         <td className="px-4 py-3 font-medium text-foreground">{t.test_description}</td>

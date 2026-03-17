@@ -471,6 +471,7 @@ Deno.serve(async (req) => {
         rows_parsed: providerRows.length,
         sheet_name: sheetName,
         source: "NHS England DM01",
+        source_url: resolvedUrl,
         db_errors: {
           cache: cacheErr?.message ?? null,
           summary: summaryErr?.message ?? null,

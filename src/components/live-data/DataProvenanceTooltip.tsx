@@ -80,12 +80,12 @@ const DataProvenanceTooltip = memo(({ tab, providerName, providerCode, period, f
           <p><span className="mr-1.5">📊</span><span className="text-white/60">Field:</span> {fieldDescription}</p>
           <p><span className="mr-1.5">🔗</span><span className="text-white/60">Source:</span>{' '}
             <a
-              href="https://www.england.nhs.uk/statistics/statistical-work-areas/diagnostics-waiting-times-and-activity/monthly-diagnostics-waiting-times-and-activity/"
+              href={sourceHref}
               target="_blank"
               rel="noopener noreferrer"
               className="underline text-[#93C5FD] hover:text-white transition-colors cursor-pointer"
             >
-              NHS England DM01 Monthly Diagnostics
+              {sourceLabel}
               <ExternalLink className="inline-block ml-1 h-3 w-3" aria-hidden="true" />
             </a>
           </p>
