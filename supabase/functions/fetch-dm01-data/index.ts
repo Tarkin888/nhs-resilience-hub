@@ -73,7 +73,7 @@ async function discoverProviderXlsUrl(period: string): Promise<string | null> {
 /**
  * Try to fetch an XLS file from a list of URLs, returning the first successful buffer.
  */
-async function tryFetchUrls(urls: string[]): Promise<Uint8Array | null> {
+async function tryFetchUrls(urls: string[]): Promise<{ buffer: Uint8Array; url: string } | null> {
   for (const url of urls) {
     try {
       console.log(`Trying URL: ${url}`);
@@ -82,7 +82,7 @@ async function tryFetchUrls(urls: string[]): Promise<Uint8Array | null> {
       });
       if (res.ok) {
         console.log(`Success: ${url}`);
-        return new Uint8Array(await res.arrayBuffer());
+        return { buffer: new Uint8Array(await res.arrayBuffer()), url };
       }
       console.log(`Failed (${res.status}): ${url}`);
     } catch (e) {
@@ -117,14 +117,19 @@ Deno.serve(async (req) => {
     // First: hardcoded known URL
     if (KNOWN_URLS[period]) urlsToTry.push(KNOWN_URLS[period]);
     
+    let resolvedUrl: string | null = null;
+    
     // Try known URLs first (fast, no page scraping needed)
-    let buffer = await tryFetchUrls(urlsToTry);
+    const fetchResult = await tryFetchUrls(urlsToTry);
+    let buffer = fetchResult?.buffer ?? null;
+    if (fetchResult) resolvedUrl = fetchResult.url;
     
     // Third: try discovery from HTML page as last resort
     if (!buffer) {
       const discovered = await discoverProviderXlsUrl(period);
       if (discovered) {
-        buffer = await tryFetchUrls([discovered]);
+        const discResult = await tryFetchUrls([discovered]);
+        if (discResult) { buffer = discResult.buffer; resolvedUrl = discResult.url; }
       }
     }
     
@@ -466,6 +471,7 @@ Deno.serve(async (req) => {
         rows_parsed: providerRows.length,
         sheet_name: sheetName,
         source: "NHS England DM01",
+        source_url: resolvedUrl,
         db_errors: {
           cache: cacheErr?.message ?? null,
           summary: summaryErr?.message ?? null,

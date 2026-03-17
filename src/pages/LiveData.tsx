@@ -62,6 +62,11 @@ interface DM01Response {
   summary: DM01Summary;
   tests: TestRow[];
   error?: string;
+  meta?: {
+    source_url?: string;
+    sheet_name?: string;
+    [key: string]: unknown;
+  };
 }
 
 type SortKey = 'test_description' | 'total_waiting_list' | 'waiting_6_plus_weeks' | 'percent_6_plus_weeks' | 'total_activity';
@@ -451,7 +456,7 @@ export default function LiveData() {
                   <div className="rounded-lg p-4" style={{ backgroundColor: `${statusColor}10`, border: `1px solid ${statusColor}30` }}>
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1">
                       Patients Waiting 6+ Weeks
-                      <DataProvenanceTooltip tab="Provider" providerName={data.provider_name} providerCode={data.provider_code} period={periodLabel} fieldDescription={`"Number waiting 6+ Weeks" column → ${data.provider_code} total row\nPercentage = Number waiting 6+ Weeks ÷ Total Waiting List × 100`} />
+                      <DataProvenanceTooltip tab="Provider" providerName={data.provider_name} providerCode={data.provider_code} period={periodLabel} fieldDescription={`"Number waiting 6+ Weeks" column → ${data.provider_code} total row\nPercentage = Number waiting 6+ Weeks ÷ Total Waiting List × 100`} sourceUrl={data.meta?.source_url} />
                     </p>
                     <p className="text-3xl font-bold mt-1" style={{ color: statusColor }}>{fmt(s.total_waiting_6_plus_weeks)}</p>
                     <p className="text-sm text-muted-foreground mt-0.5">{s.percent_6_plus_weeks.toFixed(1)}% of waiting list</p>
@@ -459,7 +464,7 @@ export default function LiveData() {
                   <div className="rounded-lg border border-border bg-muted/30 p-4">
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1">
                       Total Waiting List
-                      <DataProvenanceTooltip tab="Provider" providerName={data.provider_name} providerCode={data.provider_code} period={periodLabel} fieldDescription={`"Total Waiting List" column → ${data.provider_code} total row`} />
+                      <DataProvenanceTooltip tab="Provider" providerName={data.provider_name} providerCode={data.provider_code} period={periodLabel} fieldDescription={`"Total Waiting List" column → ${data.provider_code} total row`} sourceUrl={data.meta?.source_url} />
                     </p>
                     <p className="text-2xl font-bold text-foreground mt-1">{fmt(s.total_waiting_list)}</p>
                     <p className="text-sm text-muted-foreground mt-0.5">patients across {data.tests.length} {data.tests.length === 1 ? 'test' : 'tests'}</p>
@@ -467,7 +472,7 @@ export default function LiveData() {
                   <div className="rounded-lg border border-border bg-muted/30 p-4">
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1">
                       Monthly Activity
-                      <DataProvenanceTooltip tab="Provider by Test" providerName={data.provider_name} providerCode={data.provider_code} period={periodLabel} fieldDescription={`SUM of "Planned tests / procedures" column across all ${data.tests.length} diagnostic test rows for ${data.provider_code}`} />
+                      <DataProvenanceTooltip tab="Provider by Test" providerName={data.provider_name} providerCode={data.provider_code} period={periodLabel} fieldDescription={`SUM of "Planned tests / procedures" column across all ${data.tests.length} diagnostic test rows for ${data.provider_code}`} sourceUrl={data.meta?.source_url} />
                     </p>
                     <p className="text-2xl font-bold text-foreground mt-1">{fmt(s.total_activity)}</p>
                     <p className="text-sm text-muted-foreground mt-0.5">tests completed this month</p>
@@ -559,7 +564,7 @@ export default function LiveData() {
                 </thead>
                 <tbody>
                   {sortedTests.map((t, i) => {
-                    const prov = { providerName: data.provider_name, providerCode: data.provider_code, period: (() => { const [y, m] = data.period.split('-'); const months = ['January','February','March','April','May','June','July','August','September','October','November','December']; return `${months[parseInt(m, 10) - 1]} ${y}`; })(), tab: 'Provider by Test' };
+                    const prov = { providerName: data.provider_name, providerCode: data.provider_code, period: (() => { const [y, m] = data.period.split('-'); const months = ['January','February','March','April','May','June','July','August','September','October','November','December']; return `${months[parseInt(m, 10) - 1]} ${y}`; })(), tab: 'Provider by Test', sourceUrl: data.meta?.source_url };
                     return (
                       <tr key={t.test_code} className={i % 2 === 0 ? 'bg-muted/20' : ''}>
                         <td className="px-4 py-3 font-medium text-foreground">{t.test_description}</td>
