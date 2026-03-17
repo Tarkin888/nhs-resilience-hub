@@ -62,6 +62,11 @@ interface DM01Response {
   summary: DM01Summary;
   tests: TestRow[];
   error?: string;
+  meta?: {
+    source_url?: string;
+    sheet_name?: string;
+    [key: string]: unknown;
+  };
 }
 
 type SortKey = 'test_description' | 'total_waiting_list' | 'waiting_6_plus_weeks' | 'percent_6_plus_weeks' | 'total_activity';
