@@ -472,7 +472,7 @@ export default function LiveData() {
                   <div className="rounded-lg border border-border bg-muted/30 p-4">
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1">
                       Monthly Activity
-                      <DataProvenanceTooltip tab="Provider by Test" providerName={data.provider_name} providerCode={data.provider_code} period={periodLabel} fieldDescription={`SUM of "Planned tests / procedures" column across all ${data.tests.length} diagnostic test rows for ${data.provider_code}`} />
+                      <DataProvenanceTooltip tab="Provider by Test" providerName={data.provider_name} providerCode={data.provider_code} period={periodLabel} fieldDescription={`SUM of "Planned tests / procedures" column across all ${data.tests.length} diagnostic test rows for ${data.provider_code}`} sourceUrl={data.meta?.source_url} />
                     </p>
                     <p className="text-2xl font-bold text-foreground mt-1">{fmt(s.total_activity)}</p>
                     <p className="text-sm text-muted-foreground mt-0.5">tests completed this month</p>
