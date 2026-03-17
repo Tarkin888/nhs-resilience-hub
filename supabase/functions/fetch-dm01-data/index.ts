@@ -117,14 +117,19 @@ Deno.serve(async (req) => {
     // First: hardcoded known URL
     if (KNOWN_URLS[period]) urlsToTry.push(KNOWN_URLS[period]);
     
+    let resolvedUrl: string | null = null;
+    
     // Try known URLs first (fast, no page scraping needed)
-    let buffer = await tryFetchUrls(urlsToTry);
+    const fetchResult = await tryFetchUrls(urlsToTry);
+    let buffer = fetchResult?.buffer ?? null;
+    if (fetchResult) resolvedUrl = fetchResult.url;
     
     // Third: try discovery from HTML page as last resort
     if (!buffer) {
       const discovered = await discoverProviderXlsUrl(period);
       if (discovered) {
-        buffer = await tryFetchUrls([discovered]);
+        const discResult = await tryFetchUrls([discovered]);
+        if (discResult) { buffer = discResult.buffer; resolvedUrl = discResult.url; }
       }
     }
     
