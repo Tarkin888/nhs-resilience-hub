@@ -464,7 +464,7 @@ export default function LiveData() {
                   <div className="rounded-lg border border-border bg-muted/30 p-4">
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1">
                       Total Waiting List
-                      <DataProvenanceTooltip tab="Provider" providerName={data.provider_name} providerCode={data.provider_code} period={periodLabel} fieldDescription={`"Total Waiting List" column → ${data.provider_code} total row`} />
+                      <DataProvenanceTooltip tab="Provider" providerName={data.provider_name} providerCode={data.provider_code} period={periodLabel} fieldDescription={`"Total Waiting List" column → ${data.provider_code} total row`} sourceUrl={data.meta?.source_url} />
                     </p>
                     <p className="text-2xl font-bold text-foreground mt-1">{fmt(s.total_waiting_list)}</p>
                     <p className="text-sm text-muted-foreground mt-0.5">patients across {data.tests.length} {data.tests.length === 1 ? 'test' : 'tests'}</p>
