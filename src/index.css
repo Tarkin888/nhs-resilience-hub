@@ -127,17 +127,17 @@
     --source-assessment: 36 100% 50%;
     --source-demo: 4 90% 58%;
 
-    --border: 200 24% 25%;
-    --input: 200 24% 25%;
-    --ring: 209 100% 50%;
+    --border: 220 30% 22%;
+    --input: 220 30% 22%;
+    --ring: 170 68% 50%;
 
-    --sidebar-background: 200 24% 10%;
+    --sidebar-background: 220 40% 8%;
     --sidebar-foreground: 0 0% 100%;
     --sidebar-primary: 0 0% 100%;
-    --sidebar-primary-foreground: 200 24% 10%;
-    --sidebar-accent: 200 24% 16%;
+    --sidebar-primary-foreground: 220 40% 8%;
+    --sidebar-accent: 220 40% 14%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 200 24% 20%;
+    --sidebar-border: 220 30% 18%;
     --sidebar-ring: 0 0% 100%;
   }
 }
@@ -149,7 +149,7 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'Work Sans', system-ui, -apple-system, sans-serif;
   }
 }
 
