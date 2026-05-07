@@ -34,9 +34,9 @@ const StatusFooter = memo(({
             </div>
             <div>
               <h3 className="text-lg font-semibold text-foreground">
-                NHS Trust Resilience Dashboard
+                ResilienC Command Centre
               </h3>
-              <p className="text-xs text-muted-foreground">v2.1.0</p>
+              <p className="text-xs text-muted-foreground">Strategic Resilience. Long-term Performance.</p>
             </div>
           </div>
         </div>
@@ -64,15 +64,15 @@ const StatusFooter = memo(({
         <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 mb-6" role="note" aria-label="Dashboard information">
           <p className="text-sm text-muted-foreground leading-relaxed">
             <strong>Disclaimer:</strong> This is a demonstration prototype using illustrative data. 
-            St. Mary's NHS Foundation Trust is a fictional organization. Not affiliated with NHS England.
+            St. Mary's NHS Foundation Trust is a fictional organisation. Not affiliated with NHS England.
             Data is simulated for demonstration purposes only.
           </p>
         </div>
 
         {/* Built With */}
         <div className="text-center mb-4">
-          <p className="text-sm font-medium text-foreground mb-1">Demo Application Built With:</p>
-          <p className="text-sm text-muted-foreground">RxPercept.ai | Sector-Agnostic Resilience Methodology</p>
+          <p className="text-sm font-medium text-foreground mb-1">Built by</p>
+          <p className="text-sm text-muted-foreground">xPercept.ai — ResilienC Framework</p>
         </div>
 
         {/* Support */}

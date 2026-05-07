@@ -2,33 +2,32 @@
 @tailwind components;
 @tailwind utilities;
 
-/* NHS Trust Resilience Management Platform Design System */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+/* ResilienC Design System */
 
 @layer base {
   :root {
-    /* NHS Core Palette */
-    --background: 192 33% 95%; /* #F0F4F5 */
-    --foreground: 200 24% 16%; /* #212B32 */
+    /* ResilienC Core Palette */
+    --background: 210 20% 98%; /* #F9FAFB */
+    --foreground: 220 100% 17%; /* #001D57 */
 
     --card: 0 0% 100%;
-    --card-foreground: 200 24% 16%;
+    --card-foreground: 220 100% 17%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 200 24% 16%;
+    --popover-foreground: 220 100% 17%;
 
-    /* NHS Blue Primary */
-    --primary: 209 100% 36%; /* #005EB8 */
+    /* ResilienC Deep Navy Primary */
+    --primary: 220 100% 17%; /* #001D57 */
     --primary-foreground: 0 0% 100%;
 
-    /* NHS Dark Blue */
-    --secondary: 218 100% 26%; /* #003087 */
+    /* ResilienC Teal Accent */
+    --secondary: 170 68% 44%; /* #24BEAA */
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 192 33% 95%;
-    --muted-foreground: 200 10% 40%;
+    --muted: 210 20% 98%;
+    --muted-foreground: 218 13% 46%; /* #697284 */
 
-    --accent: 209 100% 36%;
+    --accent: 170 68% 44%; /* #24BEAA */
     --accent-foreground: 0 0% 100%;
 
     /* Status Colors */
@@ -66,43 +65,43 @@
     --source-assessment: 36 100% 50%; /* #FF9800 Orange */
     --source-demo: 4 90% 58%; /* #F44336 Red */
 
-    --border: 192 20% 88%;
-    --input: 192 20% 88%;
-    --ring: 209 100% 36%;
+    --border: 210 16% 90%;
+    --input: 210 16% 90%;
+    --ring: 170 68% 44%;
 
     --radius: 0.5rem;
 
     /* Sidebar */
-    --sidebar-background: 218 100% 26%;
+    --sidebar-background: 220 100% 17%;
     --sidebar-foreground: 0 0% 100%;
     --sidebar-primary: 0 0% 100%;
-    --sidebar-primary-foreground: 218 100% 26%;
-    --sidebar-accent: 218 100% 32%;
+    --sidebar-primary-foreground: 220 100% 17%;
+    --sidebar-accent: 220 100% 22%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 218 100% 32%;
+    --sidebar-border: 220 100% 22%;
     --sidebar-ring: 0 0% 100%;
   }
 
   .dark {
-    --background: 200 24% 12%;
-    --foreground: 192 33% 95%;
+    --background: 220 40% 10%;
+    --foreground: 210 20% 95%;
 
-    --card: 200 24% 16%;
-    --card-foreground: 192 33% 95%;
+    --card: 220 40% 14%;
+    --card-foreground: 210 20% 95%;
 
-    --popover: 200 24% 16%;
-    --popover-foreground: 192 33% 95%;
+    --popover: 220 40% 14%;
+    --popover-foreground: 210 20% 95%;
 
-    --primary: 209 100% 50%;
+    --primary: 170 68% 50%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 218 100% 40%;
+    --secondary: 220 100% 30%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 200 24% 20%;
-    --muted-foreground: 192 20% 70%;
+    --muted: 220 30% 18%;
+    --muted-foreground: 218 13% 65%;
 
-    --accent: 209 100% 50%;
+    --accent: 170 68% 50%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 4 77% 55%;
@@ -128,17 +127,17 @@
     --source-assessment: 36 100% 50%;
     --source-demo: 4 90% 58%;
 
-    --border: 200 24% 25%;
-    --input: 200 24% 25%;
-    --ring: 209 100% 50%;
+    --border: 220 30% 22%;
+    --input: 220 30% 22%;
+    --ring: 170 68% 50%;
 
-    --sidebar-background: 200 24% 10%;
+    --sidebar-background: 220 40% 8%;
     --sidebar-foreground: 0 0% 100%;
     --sidebar-primary: 0 0% 100%;
-    --sidebar-primary-foreground: 200 24% 10%;
-    --sidebar-accent: 200 24% 16%;
+    --sidebar-primary-foreground: 220 40% 8%;
+    --sidebar-accent: 220 40% 14%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 200 24% 20%;
+    --sidebar-border: 220 30% 18%;
     --sidebar-ring: 0 0% 100%;
   }
 }
@@ -150,7 +149,7 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'Work Sans', system-ui, -apple-system, sans-serif;
   }
 }
 
