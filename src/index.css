@@ -2,33 +2,32 @@
 @tailwind components;
 @tailwind utilities;
 
-/* NHS Trust Resilience Management Platform Design System */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+/* ResilienC Design System */
 
 @layer base {
   :root {
-    /* NHS Core Palette */
-    --background: 192 33% 95%; /* #F0F4F5 */
-    --foreground: 200 24% 16%; /* #212B32 */
+    /* ResilienC Core Palette */
+    --background: 210 20% 98%; /* #F9FAFB */
+    --foreground: 220 100% 17%; /* #001D57 */
 
     --card: 0 0% 100%;
-    --card-foreground: 200 24% 16%;
+    --card-foreground: 220 100% 17%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 200 24% 16%;
+    --popover-foreground: 220 100% 17%;
 
-    /* NHS Blue Primary */
-    --primary: 209 100% 36%; /* #005EB8 */
+    /* ResilienC Deep Navy Primary */
+    --primary: 220 100% 17%; /* #001D57 */
     --primary-foreground: 0 0% 100%;
 
-    /* NHS Dark Blue */
-    --secondary: 218 100% 26%; /* #003087 */
+    /* ResilienC Teal Accent */
+    --secondary: 170 68% 44%; /* #24BEAA */
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 192 33% 95%;
-    --muted-foreground: 200 10% 40%;
+    --muted: 210 20% 98%;
+    --muted-foreground: 218 13% 46%; /* #697284 */
 
-    --accent: 209 100% 36%;
+    --accent: 170 68% 44%; /* #24BEAA */
     --accent-foreground: 0 0% 100%;
 
     /* Status Colors */
